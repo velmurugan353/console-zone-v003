@@ -30,8 +30,6 @@ import { RENTAL_CONSOLES, RentalConsole, BOOKING_TIME_SLOTS, TimeSlot } from '..
 import { formatCurrency } from '../lib/utils';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { db } from '../lib/firebase';
-import { collection, query, where, getDocs, limit, addDoc } from 'firebase/firestore';
 import { automationService } from '../services/automationService';
 import { razorpayService } from '../services/razorpayService';
 import { getCatalogSettings } from '../services/catalog-settings';
@@ -262,23 +260,21 @@ export default function RentalBookingPage() {
 
   useEffect(() => {
     const checkRentalHistory = async () => {
-      if (user) {
+      if (user?.id) {
         setCheckingHistory(true);
         try {
-          const q = query(
-            collection(db, 'rentals'),
-            where('email', '==', user.email),
-            limit(1)
-          );
-          const snapshot = await getDocs(q);
-          const isFirst = snapshot.empty;
-          setIsFirstBooking(isFirst);
+          const response = await fetch(`${API_URL}/api/rentals/user/${user.id}`);
+          if (response.ok) {
+            const rentals = await response.json();
+            const isFirst = rentals.length === 0;
+            setIsFirstBooking(isFirst);
 
-          if (isFirst) {
-            setBookingState(prev => ({
-              ...prev,
-              delivery: { ...prev.delivery, method: 'delivery' }
-            }));
+            if (isFirst) {
+              setBookingState(prev => ({
+                ...prev,
+                delivery: { ...prev.delivery, method: 'delivery' }
+              }));
+            }
           }
         } catch (error) {
           console.error("Error checking rental history:", error);
@@ -288,7 +284,7 @@ export default function RentalBookingPage() {
       }
     };
     checkRentalHistory();
-  }, [user]);
+  }, [user?.id]);
 
   useEffect(() => {
     const fetchSlotAvailability = async () => {

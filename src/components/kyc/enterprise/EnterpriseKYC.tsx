@@ -437,11 +437,11 @@ export default function EnterpriseKYC() {
 
         if (!drivingLicenseNumber.trim()) newErrors.drivingLicenseNumber = "Driving License is required";
         if (!secondaryIdType) newErrors.secondaryIdType = "Secondary ID Type is required";
-        if (secondaryIdType && secondaryIdType !== 'none') {
+        
+        if (secondaryIdType) {
             if (!secondaryIdNumber.trim()) newErrors.secondaryIdNumber = "Secondary ID Number is required";
-            if (!secondaryIdFrontFile) newErrors.secondaryIdFront = "Front image of secondary ID is required";
-            if (!secondaryIdBackFile) newErrors.secondaryIdBack = "Back image of secondary ID is required";
         }
+        
         if (!address.trim()) newErrors.address = "Residential Address is required";
 
         setErrors(newErrors);
@@ -482,10 +482,16 @@ export default function EnterpriseKYC() {
                 return;
             }
 
-            if (!idFrontFile || !idBackFile || !selfieVideoFile) {
+            if (!idFrontFile || !idBackFile || !selfieVideoFile || !secondaryIdFrontFile || !secondaryIdBackFile) {
                 if (!selfieVideoFile) {
                     setVideoError("Complete the video liveness check before continuing.");
                 }
+                
+                const newErrors: Record<string, string> = { ...errors };
+                if (!secondaryIdFrontFile) newErrors.secondaryIdFront = "Secondary ID Front is required";
+                if (!secondaryIdBackFile) newErrors.secondaryIdBack = "Secondary ID Back is required";
+                setErrors(newErrors);
+                
                 return;
             }
             setVideoError(null);
@@ -534,7 +540,7 @@ export default function EnterpriseKYC() {
             // Upload Secondary ID images
             let secondaryIdFrontUrl = '';
             let secondaryIdBackUrl = '';
-            if (secondaryIdType && secondaryIdType !== 'none' && secondaryIdFrontFile) {
+            if (secondaryIdType && secondaryIdFrontFile) {
                 secondaryIdFrontUrl = await uploadKYCDocument(user.id, secondaryIdFrontFile, 'secondary-id-front', (progress) => {
                     setUploadProgress(prev => ({ ...prev, secondaryFront: progress }));
                 });
@@ -748,7 +754,6 @@ export default function EnterpriseKYC() {
                                                             className="w-full bg-transparent p-4 text-white outline-none font-bold appearance-none cursor-pointer"
                                                         >
                                                             <option value="" disabled className="bg-[#080112]">Select ID Type</option>
-                                                            <option value="none" className="bg-[#080112]">Skip (Not Mandatory)</option>
                                                             <option value="aadhar" className="bg-[#080112]">Aadhar Card</option>
                                                             <option value="passport" className="bg-[#080112]">Passport</option>
                                                             <option value="voter" className="bg-[#080112]">Voter ID</option>
@@ -771,8 +776,8 @@ export default function EnterpriseKYC() {
                                                             type="text"
                                                             value={secondaryIdNumber}
                                                             onChange={(e) => setSecondaryIdNumber(e.target.value)}
-                                                            placeholder={secondaryIdType && secondaryIdType !== 'none' ? "Enter ID number" : "Optional"}
-                                                            disabled={!secondaryIdType || secondaryIdType === 'none'}
+                                                            placeholder={secondaryIdType ? "Enter ID number" : "Select ID type first"}
+                                                            disabled={!secondaryIdType}
                                                             onFocus={() => setActiveField('secIdNum')}
                                                             onBlur={() => setActiveField(null)}
                                                             className="w-full bg-transparent p-4 pl-12 text-white font-mono outline-none placeholder:text-gray-700 disabled:opacity-30"
@@ -1243,6 +1248,8 @@ export default function EnterpriseKYC() {
                                                         !idFrontFile ||
                                                         !idBackFile ||
                                                         !selfieVideoFile ||
+                                                        !secondaryIdFrontFile ||
+                                                        !secondaryIdBackFile ||
                                                         isRecording ||
                                                         isPreparingVideo ||
                                                         isFinalizingVideo

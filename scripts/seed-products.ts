@@ -1,19 +1,4 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, doc, setDoc } from "firebase/firestore";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBEyR7R8g3Ze_yASmU6UJgHt2tL_Ad7fLc",
-  authDomain: "console-zone.firebaseapp.com",
-  databaseURL: "https://console-zone-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "console-zone",
-  storageBucket: "console-zone.firebasestorage.app",
-  messagingSenderId: "27387199701",
-  appId: "1:27387199701:web:50bbb9916b9e09ab24e25c",
-  measurementId: "G-6L7V22719Y"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const API_URL = 'http://localhost:5010';
 
 const products = [
   {
@@ -95,14 +80,26 @@ const products = [
 ];
 
 async function seedProducts() {
-  console.log('Seeding products to Firestore...');
+  console.log('Seeding products to Matrix API...');
   
   for (const product of products) {
-    await setDoc(doc(db, 'products', product.id), product);
-    console.log(`Added: ${product.name}`);
+    try {
+      const response = await fetch(`${API_URL}/api/products`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(product)
+      });
+      if (response.ok) {
+        console.log(`Added: ${product.name}`);
+      } else {
+        console.error(`Failed to add: ${product.name}`, await response.text());
+      }
+    } catch (e) {
+      console.error(`Error adding ${product.name}:`, e);
+    }
   }
   
-  console.log('Done! Added 6 products.');
+  console.log('Done!');
 }
 
 seedProducts().catch(console.error);

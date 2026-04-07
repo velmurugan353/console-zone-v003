@@ -524,7 +524,7 @@ app.post('/api/kyc', async (req, res) => {
     ];
 
     // Validate secondary ID if provided
-    if (data.secondaryIdType && data.secondaryIdType !== 'none') {
+    if (data.secondaryIdType) {
       reports.push({
         agentName: 'Document Specialist',
         status: 'PASS',

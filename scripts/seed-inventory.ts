@@ -1,18 +1,4 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBEyR7R8g3Ze_yASmU6UJgHt2tL_Ad7fLc",
-  authDomain: "console-zone.firebaseapp.com",
-  projectId: "console-zone",
-  storageBucket: "console-zone.firebasestorage.app",
-  messagingSenderId: "27387199701",
-  appId: "1:27387199701:web:50bbb9916b9e09ab24e25c",
-  measurementId: "G-6L7V22719Y"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const API_URL = 'http://localhost:5010';
 
 const inventoryItems = [
   { name: 'Sony PlayStation 5', category: 'Console', status: 'available', health: 100, usageCount: 0, location: 'Secure_Bay_Alpha', serialNumber: 'SN-PS5-001', basePricePerDay: 900 },
@@ -23,13 +9,13 @@ const inventoryItems = [
 ];
 
 async function seedInventory() {
-  console.log('Seeding inventory to Firestore...');
+  console.log('Seeding inventory to Matrix API...');
   
   for (const item of inventoryItems) {
     const newItem = {
       ...item,
-      lastService: new Date().toLocaleDateString(),
-      purchaseDate: new Date().toISOString(),
+      lastService: new Date(),
+      purchaseDate: new Date(),
       maintenanceHistory: [],
       rentalHistory: [],
       dynamicPricingEnabled: true,
@@ -40,16 +26,29 @@ async function seedInventory() {
       kitStatus: { 'Console': true, 'Controller': true, 'Power Lead': true },
       conditionLogs: [],
       transferHistory: [],
-      warrantyExpiry: new Date(Date.now() + 31536000000).toISOString(),
+      warrantyExpiry: new Date(Date.now() + 31536000000),
       insurancePolicy: 'POLICY-GZ-2024',
-      insuranceExpiry: new Date(Date.now() + 31536000000).toISOString(),
+      insuranceExpiry: new Date(Date.now() + 31536000000),
       depreciationRate: 10
     };
-    await addDoc(collection(db, 'inventory'), newItem);
-    console.log(`Added unit: ${item.name} (${item.serialNumber})`);
+    
+    try {
+      const response = await fetch(`${API_URL}/api/inventory`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newItem)
+      });
+      if (response.ok) {
+        console.log(`Added unit: ${item.name} (${item.serialNumber})`);
+      } else {
+        console.error(`Failed to add: ${item.name}`, await response.text());
+      }
+    } catch (e) {
+      console.error(`Error adding ${item.name}:`, e);
+    }
   }
   
-  console.log('Done! Added units to inventory.');
+  console.log('Done!');
 }
 
 seedInventory().catch(console.error);

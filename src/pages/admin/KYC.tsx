@@ -406,7 +406,7 @@ export default function AdminKYC() {
                                                 </div>
                                                 
                                                 {/* Secondary ID Assets */}
-                                                {docItem.secondaryIdType && docItem.secondaryIdType !== 'none' && (
+                                                {docItem.secondaryIdType && (
                                                     <div className="grid grid-cols-2 gap-6 pt-4 border-t border-white/5">
                                                         <div className="space-y-3">
                                                             <p className="text-[9px] font-black text-[#B000FF] uppercase tracking-widest text-center">Secondary ID ({docItem.secondaryIdType}) - Front</p>

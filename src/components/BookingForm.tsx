@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getCatalogSettings } from '../services/catalog-settings';
 import { getControllerSettings } from '../services/controller-settings';
-import { db } from '../lib/firebase';
-import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5010';
 
 const consoleOptions = [
   { value: 'ps5', label: 'PlayStation 5' },
@@ -46,17 +46,15 @@ const BookingForm = () => {
     const checkRentalHistory = async () => {
       if (user) {
         try {
-          const q = query(
-            collection(db, 'rentals'),
-            where('email', '==', user.email),
-            limit(1)
-          );
-          const snapshot = await getDocs(q);
-          const isFirst = snapshot.empty;
-          setIsFirstBooking(isFirst);
+          const response = await fetch(`${API_URL}/api/rentals/user/${user.id}`);
+          if (response.ok) {
+            const rentals = await response.json();
+            const isFirst = rentals.length === 0;
+            setIsFirstBooking(isFirst);
 
-          if (isFirst) {
-            setFormData(prev => ({ ...prev, deliveryMethod: 'delivery' }));
+            if (isFirst) {
+              setFormData(prev => ({ ...prev, deliveryMethod: 'delivery' }));
+            }
           }
         } catch (error) {
           console.error("Error checking rental history:", error);

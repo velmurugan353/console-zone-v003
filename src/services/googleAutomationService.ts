@@ -1,5 +1,4 @@
-import { db } from '../lib/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5010';
 
 export interface AutomationLog {
   id?: string;
@@ -11,9 +10,6 @@ export interface AutomationLog {
 }
 
 class GoogleAutomationService {
-  // In a real production app, these would call Cloud Functions or a Backend
-  // For this high-fidelity version, we simulate the "Agent" processing the data
-  
   async syncCustomerToSheets(customerData: any) {
     console.log(`[AGENT] Syncing ${customerData.name} to Google Sheets...`);
     await this.logActivity('Sheets', 'Export_Row', customerData.email, 'success');
@@ -33,21 +29,49 @@ class GoogleAutomationService {
   }
 
   private async logActivity(service: any, action: string, target: string, status: 'success' | 'failed') {
-    await addDoc(collection(db, 'automation_logs'), {
-      service,
-      action,
-      target,
-      status,
-      timestamp: serverTimestamp()
-    });
+    try {
+      await fetch(`${API_URL}/api/notification-logs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          templateName: 'Google Automation',
+          channels: [service],
+          status,
+          subject: action,
+          body: `Target: ${target}`,
+          trigger: 'Agent Action'
+        })
+      });
+    } catch (error) {
+      console.error('Error logging automation activity:', error);
+    }
   }
 
   subscribeToLogs(callback: (logs: AutomationLog[]) => void) {
-    const q = query(collection(db, 'automation_logs'), orderBy('timestamp', 'desc'), limit(20));
-    return onSnapshot(q, (snapshot) => {
-      const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as AutomationLog[];
-      callback(logs);
-    });
+    // Polling as a fallback for WebSocket/onSnapshot
+    const fetchLogs = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/notification-logs?limit=20`);
+        if (response.ok) {
+          const data = await response.json();
+          const logs = data.logs.map((log: any) => ({
+            id: log.logId,
+            service: log.channels[0],
+            action: log.subject,
+            target: log.body.replace('Target: ', ''),
+            status: log.status,
+            timestamp: log.createdAt
+          }));
+          callback(logs);
+        }
+      } catch (error) {
+        console.error('Error fetching automation logs:', error);
+      }
+    };
+
+    fetchLogs();
+    const interval = setInterval(fetchLogs, 5000);
+    return () => clearInterval(interval);
   }
 }
 

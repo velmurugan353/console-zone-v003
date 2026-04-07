@@ -5,7 +5,7 @@ const ServerStatus: React.FC = () => {
 
   useEffect(() => {
     fetch('/api/health')
-      .then((res) => res.json())
+      .then((res) => res.json().catch(() => ({})))
       .then((data) => {
         if (data.status === 'ok') {
           setStatus('online');

@@ -48,7 +48,7 @@ const BookingForm = () => {
         try {
           const response = await fetch(`${API_URL}/api/rentals/user/${user.id}`);
           if (response.ok) {
-            const rentals = await response.json();
+            const rentals = await response.json().catch(() => []);
             const isFirst = rentals.length === 0;
             setIsFirstBooking(isFirst);
 

@@ -38,7 +38,7 @@ export default function BookingConfirmationPage() {
       try {
         const response = await fetch(`${API_URL}/api/rentals`);
         if (response.ok) {
-          const allRentals = await response.json();
+          const allRentals = await response.json().catch(() => []);
           const target = allRentals.find((r: any) => (r._id || r.id) === bookingId);
           if (target) {
             setBookingData(target);

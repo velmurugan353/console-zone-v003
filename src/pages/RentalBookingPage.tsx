@@ -176,7 +176,7 @@ export default function RentalBookingPage() {
         try {
           const response = await fetch(`${API_URL}/api/kyc/${user.id}`);
           if (response.ok) {
-            const data = await response.json();
+            const data = await response.json().catch(() => ({}));
             setKycData(data);
           }
         } catch (error) {
@@ -222,7 +222,7 @@ export default function RentalBookingPage() {
       try {
         const response = await fetch('/api/rentals');
         if (response.ok) {
-          const fetched = await response.json();
+          const fetched = await response.json().catch(() => []);
           const target = fetched.find((c: any) => c.slug === slug);
           if (target) {
             if (target.enabled === false) {
@@ -265,7 +265,7 @@ export default function RentalBookingPage() {
         try {
           const response = await fetch(`${API_URL}/api/rentals/user/${user.id}`);
           if (response.ok) {
-            const rentals = await response.json();
+            const rentals = await response.json().catch(() => []);
             const isFirst = rentals.length === 0;
             setIsFirstBooking(isFirst);
 
@@ -294,7 +294,7 @@ export default function RentalBookingPage() {
           const dateStr = format(bookingState.duration.startDate, 'yyyy-MM-dd');
           const response = await fetch(`${API_URL}/api/rentals/slots/${dateStr}`);
           if (response.ok) {
-            const slots = await response.json();
+            const slots = await response.json().catch(() => []);
             setSlotAvailability(slots);
           } else {
             setSlotAvailability(BOOKING_TIME_SLOTS.map(s => ({ id: s.id, available: s.maxBookings, isAvailable: true })));
@@ -488,11 +488,11 @@ export default function RentalBookingPage() {
           });
 
           if (!apiRes.ok) {
-            const errorData = await apiRes.json();
+            const errorData = await apiRes.json().catch(() => ({}));
             throw new Error(errorData.error || 'Failed to save to matrix');
           }
 
-          const savedRental = await apiRes.json();
+          const savedRental = await apiRes.json().catch(() => ({}));
           const rentalId = savedRental._id || savedRental.id;
           
           await automationService.triggerWorkflow('rental_confirmed', {

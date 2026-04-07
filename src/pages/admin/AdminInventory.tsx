@@ -101,8 +101,8 @@ export default function AdminInventory() {
         fetch(`${API_URL}/api/products`)
       ]);
       
-      const invData = await inventoryRes.json();
-      const prodData = await productsRes.json();
+      const invData = await inventoryRes.json().catch(() => []);
+      const prodData = await productsRes.json().catch(() => []);
       
       setInventory(invData.map((item: any) => ({ ...item, id: item.id || item._id })));
       setProducts(prodData.filter((p: any) => p.category === 'console' || p.category === 'vr'));

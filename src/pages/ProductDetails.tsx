@@ -18,7 +18,7 @@ export default function ProductDetails() {
       try {
         const response = await fetch(`${API_URL}/api/products`);
         if (response.ok) {
-          const data = await response.json();
+          const data = await response.json().catch(() => []);
           const target = data.find((p: any) => (p._id || p.id) === id);
           if (target) {
             setProduct({ ...target, id: target._id || target.id });

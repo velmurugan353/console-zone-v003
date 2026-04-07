@@ -95,7 +95,7 @@ export default function AdminOrders() {
       try {
         const response = await fetch('/api/orders');
         if (response.ok) {
-          const fetchedOrders = await response.json();
+          const fetchedOrders = await response.json().catch(() => []);
           setOrders(fetchedOrders.map((o: any) => ({ ...o, id: o._id })));
         }
       } catch (error) {

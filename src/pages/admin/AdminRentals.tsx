@@ -87,7 +87,7 @@ export default function AdminRentals() {
     try {
       const response = await fetch(`${API_URL}/api/rentals`);
       if (response.ok) {
-        const fetchedRentals = await response.json();
+        const fetchedRentals = await response.json().catch(() => []);
         setRentals(fetchedRentals.map((r: any) => ({ 
           ...r, 
           id: r._id || r.id,
@@ -124,7 +124,7 @@ export default function AdminRentals() {
       });
 
       if (response.ok) {
-        const updated = await response.json();
+        const updated = await response.json().catch(() => ({}));
         const final = { ...updated, id: updated._id };
         setRentals(prev => prev.map(r => r.id === id ? final : r));
         if (selectedRental?.id === id) setSelectedRental(final);
@@ -152,7 +152,7 @@ export default function AdminRentals() {
           body: JSON.stringify(editForm)
         });
         if (response.ok) {
-          const updated = await response.json();
+          const updated = await response.json().catch(() => ({}));
           const final = { ...updated, id: updated._id };
           setRentals(prev => prev.map(r => r.id === final.id ? final : r));
           setSelectedRental(final);

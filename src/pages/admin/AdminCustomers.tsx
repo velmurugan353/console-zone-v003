@@ -29,7 +29,7 @@ export default function AdminCustomers() {
     try {
       const response = await fetch(`${API_URL}/api/users`);
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json().catch(() => []);
         setCustomers(data.map((u: any) => ({ 
           ...u, 
           id: u._id,

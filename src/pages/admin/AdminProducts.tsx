@@ -57,7 +57,7 @@ export default function AdminProducts() {
       try {
         const response = await fetch('/api/products');
         if (response.ok) {
-          const fetchedProducts = await response.json();
+          const fetchedProducts = await response.json().catch(() => []);
           setProducts(fetchedProducts.map((p: any) => ({
             ...p,
             id: p._id
@@ -120,7 +120,7 @@ export default function AdminProducts() {
       });
 
       if (response.ok) {
-        const saved = await response.json();
+        const saved = await response.json().catch(() => ({}));
         const finalProduct = { ...saved, id: saved._id };
         
         if (editingProductId) {

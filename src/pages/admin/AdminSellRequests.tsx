@@ -57,7 +57,7 @@ export default function AdminSellRequests() {
     try {
       const response = await fetch(`${API_URL}/api/sell-requests`);
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json().catch(() => []);
         setRequests(data.map((r: any) => ({ ...r, id: r._id })));
       }
     } catch (error) {
@@ -92,7 +92,7 @@ export default function AdminSellRequests() {
       });
       
       if (response.ok) {
-        const updated = await response.json();
+        const updated = await response.json().catch(() => ({}));
         const final = { ...updated, id: updated._id };
         setRequests(prev => prev.map(r => r.id === id ? final : r));
         if (selectedRequest?.id === id) {
@@ -115,7 +115,7 @@ export default function AdminSellRequests() {
           });
           
           if (response.ok) {
-            const updated = await response.json();
+            const updated = await response.json().catch(() => ({}));
             const final = { ...updated, id: updated._id };
             setSelectedRequest(final);
             setRequests(prev => prev.map(r => r.id === final.id ? final : r));

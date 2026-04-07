@@ -91,7 +91,7 @@ export default function AdminRepairs() {
     try {
       const response = await fetch(`${API_URL}/api/repairs`);
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json().catch(() => []);
         setRepairs(data.map((r: any) => ({ ...r, id: r._id })));
       }
     } catch (error) {
@@ -159,7 +159,7 @@ export default function AdminRepairs() {
           });
           
           if (response.ok) {
-            const updated = await response.json();
+            const updated = await response.json().catch(() => ({}));
             const final = { ...updated, id: updated._id };
             setSelectedRepair(final);
             setRepairs(prev => prev.map(r => r.id === final.id ? final : r));
@@ -210,7 +210,7 @@ export default function AdminRepairs() {
       });
       
       if (response.ok) {
-        const updated = await response.json();
+        const updated = await response.json().catch(() => ({}));
         const final = { ...updated, id: updated._id };
         setSelectedRepair(final);
         setRepairs(prev => prev.map(r => r.id === final.id ? final : r));
@@ -241,7 +241,7 @@ export default function AdminRepairs() {
       });
       
       if (response.ok) {
-        const updated = await response.json();
+        const updated = await response.json().catch(() => ({}));
         const final = { ...updated, id: updated._id };
         setRepairs(prev => prev.map(r => r.id === id ? final : r));
         if (selectedRepair?.id === id) {
@@ -262,7 +262,7 @@ export default function AdminRepairs() {
       });
       
       if (response.ok) {
-        const updated = await response.json();
+        const updated = await response.json().catch(() => ({}));
         const final = { ...updated, id: updated._id };
         setRepairs(prev => prev.map(r => r.id === id ? final : r));
         if (selectedRepair?.id === id) {

@@ -61,7 +61,7 @@ export default function Cart() {
             throw new Error('Failed to synchronize order with matrix');
           }
 
-          const savedOrder = await apiRes.json();
+          const savedOrder = await apiRes.json().catch(() => ({}));
           clearCart();
           navigate('/dashboard/orders');
           alert(`MISSION ACCOMPLISHED: Order #${(savedOrder._id || savedOrder.id).slice(-8).toUpperCase()} logged in matrix.`);

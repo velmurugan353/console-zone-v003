@@ -15,7 +15,7 @@ import L from 'leaflet';
 const fetchAddress = async (lat: number, lng: number, setAddress: (addr: string) => void) => {
     try {
         const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
         if (data.display_name) {
             setAddress(data.display_name);
         }

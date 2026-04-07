@@ -68,7 +68,7 @@ export default function RentalProductManagement() {
     try {
       const response = await fetch('/api/rentals');
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json().catch(() => []);
         // Catalog products are those without a userId
         const catalogProducts = data.filter((r: any) => !r.userId).map((r: any) => ({
           ...r,
@@ -143,7 +143,7 @@ export default function RentalProductManagement() {
         await loadProducts();
         handleCloseModal();
       } else {
-        const err = await response.json();
+        const err = await response.json().catch(() => ({}));
         alert(`Error: ${err.error || 'Save failed'}`);
       }
     } catch (error) {

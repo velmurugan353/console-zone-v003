@@ -1,10 +1,33 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Gamepad2, User, Mail, Lock, ArrowRight, Phone, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Gamepad2, User, Mail, Lock, ArrowRight, Phone, AlertCircle } from 'lucide-react';
 import { notificationService } from '../../services/notificationService';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Register() {
   const [phone, setPhone] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { register, login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await register(email, password, name);
+      await login(email, password);
+      navigate('/');
+    } catch (err: any) {
+      setError(err.message || 'Registration failed');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-dvh bg-gaming-bg flex items-center justify-center relative overflow-hidden pt-20 pb-12">
@@ -23,13 +46,23 @@ export default function Register() {
           <p className="text-gaming-muted">Join the ultimate gaming community</p>
         </div>
 
-        <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+        {error && (
+            <div className="mb-4 bg-red-500/20 border border-red-500/50 text-red-100 p-3 rounded-xl flex items-center gap-2">
+                <AlertCircle size={16} className="text-red-400" />
+                <span className="text-sm">{error}</span>
+            </div>
+        )}
+
+        <form className="space-y-4" onSubmit={handleRegister}>
           <div className="space-y-2">
             <label className="text-sm font-medium text-gaming-muted">Full Name</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gaming-muted" />
               <input 
                 type="text" 
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="w-full bg-gaming-bg border border-gaming-border rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-gaming-accent transition-colors"
                 placeholder="John Doe"
               />
@@ -42,6 +75,7 @@ export default function Register() {
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gaming-muted" />
               <input 
                 type="tel" 
+                required
                 maxLength={10}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
@@ -57,6 +91,9 @@ export default function Register() {
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gaming-muted" />
               <input 
                 type="email" 
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-gaming-bg border border-gaming-border rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-gaming-accent transition-colors"
                 placeholder="john@example.com"
               />
@@ -69,6 +106,9 @@ export default function Register() {
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gaming-muted" />
               <input 
                 type="password" 
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-gaming-bg border border-gaming-border rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-gaming-accent transition-colors"
                 placeholder="••••••••"
               />
@@ -76,7 +116,7 @@ export default function Register() {
           </div>
 
           <div className="flex items-center space-x-2 pt-2">
-            <input type="checkbox" id="terms" className="rounded bg-gaming-bg border-gaming-border text-gaming-accent focus:ring-gaming-accent" />
+            <input type="checkbox" id="terms" required className="rounded bg-gaming-bg border-gaming-border text-gaming-accent focus:ring-gaming-accent" />
             <label htmlFor="terms" className="text-sm text-gaming-muted">
               I agree to the <Link to="/terms" className="text-gaming-accent hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-gaming-accent hover:underline">Privacy Policy</Link>
             </label>
@@ -84,9 +124,10 @@ export default function Register() {
 
           <button
             type="submit"
-            className="w-full py-4 font-bold rounded-xl transition-colors flex items-center justify-center group mt-6 bg-white text-black hover:bg-gray-200"
+            disabled={loading}
+            className="w-full py-4 font-bold rounded-xl transition-colors flex items-center justify-center group mt-6 bg-white text-black hover:bg-gray-200 disabled:opacity-50"
           >
-            Create Account
+            {loading ? 'Processing...' : 'Create Account'}
             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </button>
         </form>

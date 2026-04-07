@@ -4,7 +4,7 @@ import { Loader2, ShieldAlert, RefreshCw, AlertTriangle } from "lucide-react";
 import EnterpriseKYC from "../../components/kyc/enterprise/EnterpriseKYC";
 import { useAuth } from "../../context/AuthContext";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5010';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 export default function UserKYC() {
     const [loading, setLoading] = useState(true);

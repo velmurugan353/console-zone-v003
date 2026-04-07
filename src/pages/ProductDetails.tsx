@@ -5,7 +5,7 @@ import { ShoppingCart, Star, ShieldCheck, Truck, RefreshCw, ChevronLeft, Check, 
 import { formatCurrency } from '../lib/utils';
 import { useCart } from '../context/CartContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5010';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 export default function ProductDetails() {
   const { id } = useParams();

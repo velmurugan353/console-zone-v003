@@ -30,7 +30,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '../../lib/utils';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5010';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 type InventoryStatus = 'Available' | 'Rented' | 'Maintenance' | 'Retired';
 

@@ -5,7 +5,7 @@ import { ShoppingBag, Package, Truck, CheckCircle, Clock, Search, ExternalLink, 
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5010';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 export default function MyOrders() {
   const { user } = useAuth();

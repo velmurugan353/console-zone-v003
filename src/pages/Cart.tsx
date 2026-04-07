@@ -7,7 +7,7 @@ import { razorpayService } from '../services/razorpayService';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5010';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 export default function Cart() {
   const { items: cart, removeFromCart, updateQuantity, cartTotal, clearCart } = useCart();

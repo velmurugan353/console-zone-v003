@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { getCatalogSettings } from '../services/catalog-settings';
 import { getControllerSettings } from '../services/controller-settings';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5010';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const consoleOptions = [
   { value: 'ps5', label: 'PlayStation 5' },

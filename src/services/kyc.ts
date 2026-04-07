@@ -67,7 +67,7 @@ export const getKYCStatus = async (userId: string): Promise<KYCData | null> => {
   try {
     const response = await fetch(`${API_URL}/api/kyc/${userId}`);
     if (!response.ok) return null;
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
     return normalizeKYC(data);
   } catch (error) {
     console.error("Error fetching KYC status:", error);
@@ -79,7 +79,7 @@ export const getAllKYC = async (): Promise<KYCData[]> => {
   try {
     const response = await fetch(`${API_URL}/api/kyc-all`);
     if (!response.ok) return [];
-    const data = await response.json();
+    const data = await response.json().catch(() => []);
     return data.map(normalizeKYC);
   } catch (error) {
     console.error("Error fetching all KYC:", error);
@@ -122,7 +122,7 @@ export const uploadKYCDocument = async (
       throw new Error('Upload failed');
     }
 
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
     if (onProgress) onProgress(100);
     return data.url;
   } catch (error) {

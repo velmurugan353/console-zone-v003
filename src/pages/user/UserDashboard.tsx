@@ -39,12 +39,12 @@ export default function UserDashboard() {
         ]);
 
         if (ordersRes.ok) {
-          const ordersData = await ordersRes.json();
+          const ordersData = await ordersRes.json().catch(() => []);
           setOrders(ordersData.map((o: any) => ({ ...o, id: o._id, type: 'order' })));
         }
 
         if (rentalsRes.ok) {
-          const rentalsData = await rentalsRes.json();
+          const rentalsData = await rentalsRes.json().catch(() => []);
           setRentals(rentalsData.map((r: any) => ({ ...r, id: r._id, type: 'rental' })));
         }
       } catch (error) {

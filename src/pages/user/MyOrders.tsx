@@ -20,7 +20,7 @@ export default function MyOrders() {
       try {
         const response = await fetch(`${API_URL}/api/orders/user/${user.id}`);
         if (response.ok) {
-          const data = await response.json();
+          const data = await response.json().catch(() => []);
           setOrders(data);
         }
       } catch (error) {

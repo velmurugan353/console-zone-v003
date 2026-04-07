@@ -22,7 +22,7 @@ export const rentalService = {
             // Fetch inventory from MongoDB
             const inventoryRes = await fetch(`${API_URL}/api/inventory`);
             if (!inventoryRes.ok) throw new Error("Failed to fetch inventory");
-            let allUnits = await inventoryRes.json();
+            let allUnits = await inventoryRes.json().catch(() => []);
             console.log(`[RENTAL_SERVICE] Fetched ${allUnits.length} units from inventory`);
             
             // Virtual Fleet Fallback Protocol
@@ -39,7 +39,7 @@ export const rentalService = {
             // Fetch existing rentals to check for overlaps
             const rentalsRes = await fetch(`${API_URL}/api/rentals`);
             if (!rentalsRes.ok) throw new Error("Failed to fetch rentals");
-            const existingRentals = await rentalsRes.json();
+            const existingRentals = await rentalsRes.json().catch(() => []);
             console.log(`[RENTAL_SERVICE] Fetched ${existingRentals.length} existing rentals`);
             
             // Normalize units for the filter (handle both id and _id)
@@ -80,7 +80,7 @@ export const rentalService = {
 
             // 2. Update Inventory Unit
             const inventoryRes = await fetch(`${API_URL}/api/inventory`);
-            const allUnits = await inventoryRes.json();
+            const allUnits = await inventoryRes.json().catch(() => []);
             const unit = allUnits.find((u: any) => (u.id || u._id) === unitId);
             
             if (unit) {

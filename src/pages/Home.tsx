@@ -20,7 +20,7 @@ export default function Home() {
             try {
                 const response = await fetch(`${API_URL}/api/rentals`);
                 if (response.ok) {
-                    const data = await response.json();
+                    const data = await response.json().catch(() => []);
                     // Filter only enabled catalog items
                     const enabledCatalog = data
                         .filter((r: any) => r.slug && !r.userId && r.enabled !== false)

@@ -33,7 +33,7 @@ export default function Rentals() {
       try {
         const response = await fetch(`${API_URL}/api/rentals`);
         if (response.ok) {
-          const data = await response.json();
+          const data = await response.json().catch(() => []);
           // Filter only the catalog/product definition rentals (not individual bookings)
           const catalogItems = data.filter((r: any) => r.slug && !r.userId && r.enabled !== false).map((r: any) => ({ 
             ...r, 

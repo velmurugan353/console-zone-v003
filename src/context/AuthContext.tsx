@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
         setUser({
           id: data._id,
           name: data.username,
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ email, password })
     });
 
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || 'Login failed');
 
     localStorage.setItem('consolezone_token', data.token);
@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ email, password, username: name || email.split('@')[0] })
     });
 
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || 'Registration failed');
 
     localStorage.setItem('consolezone_token', data.token);
@@ -127,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ credential })
     });
 
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || 'Google Login failed');
 
     localStorage.setItem('consolezone_token', data.token);

@@ -60,7 +60,7 @@ export default function MyRentals() {
       try {
         const response = await fetch(`/api/rentals/user/${user.id}`);
         if (response.ok) {
-          const data = await response.json();
+          const data = await response.json().catch(() => []);
           setRentals(data.map((r: any) => ({ ...r, id: r._id })));
         }
       } catch (error) {

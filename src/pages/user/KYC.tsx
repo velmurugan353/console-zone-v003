@@ -26,7 +26,7 @@ export default function UserKYC() {
             try {
                 const response = await fetch(`${API_URL}/api/kyc/${user.id}`);
                 if (response.ok) {
-                    const kyc = await response.json();
+                    const kyc = await response.json().catch(() => ({}));
                     if (kyc.status === 'REVERIFICATION_REQUESTED') {
                         setStatus(null);
                     } else {

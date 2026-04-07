@@ -19,7 +19,7 @@ export default function Shop() {
       try {
         const response = await fetch(`${API_URL}/api/products`);
         if (response.ok) {
-          const data = await response.json();
+          const data = await response.json().catch(() => []);
           setProducts(data.map((p: any) => ({ ...p, id: p._id || p.id })));
         }
       } catch (error) {

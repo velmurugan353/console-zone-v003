@@ -53,8 +53,8 @@ class GoogleAutomationService {
       try {
         const response = await fetch(`${API_URL}/api/notification-logs?limit=20`);
         if (response.ok) {
-          const data = await response.json();
-          const logs = data.logs.map((log: any) => ({
+          const data = await response.json().catch(() => ({ logs: [] }));
+          const logs = (data.logs || []).map((log: any) => ({
             id: log.logId,
             service: log.channels[0],
             action: log.subject,

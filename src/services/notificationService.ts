@@ -58,7 +58,7 @@ export const notificationService = {
           data
         })
       });
-      return await response.json();
+      return await response.json().catch(() => ({}));
     } catch (error) {
       console.error("Error sending notification:", error);
     }
@@ -76,7 +76,7 @@ export const notificationService = {
     try {
       const response = await fetch(`${API_URL}/api/notifications/${userId}`);
       if (!response.ok) return [];
-      return await response.json();
+      return await response.json().catch(() => []);
     } catch (error) {
       console.error("Error fetching notifications:", error);
       return [];

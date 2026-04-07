@@ -46,11 +46,15 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean, onClos
         setError('');
         setLoading(true);
         try {
+            console.log('AuthModal: Starting registration for', email);
             await register(email, password, name);
+            console.log('AuthModal: Registration successful, logging in...');
             // Optionally auto-login after register
             await login(email, password);
+            console.log('AuthModal: Login successful');
             onClose();
         } catch (err: any) {
+            console.error('AuthModal: Registration/Login error:', err);
             setError(err.message || 'Failed to register');
         } finally {
             setLoading(false);

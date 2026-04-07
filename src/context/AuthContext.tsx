@@ -99,13 +99,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (email: string, password?: string, name?: string) => {
+    console.log('Attempting register with:', { email, username: name });
     const response = await fetch(`${API_URL}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, username: name || email.split('@')[0] })
     });
 
+    console.log('Register response status:', response.status);
     const data = await response.json().catch(() => ({}));
+    console.log('Register response data:', data);
+    
     if (!response.ok) throw new Error(data.error || 'Registration failed');
 
     localStorage.setItem('consolezone_token', data.token);

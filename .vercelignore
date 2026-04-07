@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+db_data
+db_data_fresh
+db_data_new
+mongodb4
+*.log
+*.txt

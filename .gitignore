@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.DS_Store
+.env
+*.zip
+db_data/
+db_data_fresh/
+db_data_new/
+mongodb4/
+mongo_*.txt
+nul

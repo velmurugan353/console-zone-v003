@@ -30,12 +30,38 @@ const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 const PORT = process.env.PORT || 5010;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/consolezone';
 
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+// Database Connection with Caching for Serverless
+let cachedConnection = null;
+
+const connectDB = async () => {
+  if (cachedConnection && mongoose.connection.readyState === 1) {
+    return cachedConnection;
+  }
+
+  try {
+    console.log('⏳ Connecting to MongoDB...');
+    cachedConnection = await mongoose.connect(MONGODB_URI);
+    console.log('✅ Connected to MongoDB');
+    return cachedConnection;
+  } catch (err) {
+    console.error('❌ MongoDB connection error:', err);
+    throw err;
+  }
+};
 
 app.use(cors());
 app.use(express.json());
+
+// Middleware to ensure DB is connected before processing requests
+app.use(async (req, res, next) => {
+  // Skip DB check for health endpoint if needed, or include it
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    res.status(500).json({ error: 'Database connection failed. Please check MONGODB_URI environment variable.' });
+  }
+});
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

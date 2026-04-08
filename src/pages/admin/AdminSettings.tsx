@@ -65,7 +65,7 @@ export default function AdminSettings() {
                   onChange={handleChange}
                   className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-[#B000FF] focus:outline-none"
                 >
-                  <option value="INR">INR (â‚¹)</option>
+                  <option value="INR">INR (₹)</option>
                   <option value="USD">USD ($)</option>
                   <option value="GBP">GBP (Â£)</option>
                 </select>

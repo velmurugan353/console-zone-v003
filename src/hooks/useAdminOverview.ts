@@ -204,12 +204,15 @@ export const useAdminOverview = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const token = localStorage.getItem('consolezone_token');
+        const headers = { 'Authorization': `Bearer ${token}` };
+
         const [ordersRes, rentalsRes, usersRes, inventoryRes, kycRes] = await Promise.all([
-          fetch(`${API_URL}/api/orders`),
-          fetch(`${API_URL}/api/rentals`),
-          fetch(`${API_URL}/api/users`),
-          fetch(`${API_URL}/api/inventory`),
-          fetch(`${API_URL}/api/kyc-all`)
+          fetch(`${API_URL}/api/orders`, { headers }),
+          fetch(`${API_URL}/api/rentals`, { headers }),
+          fetch(`${API_URL}/api/users`, { headers }),
+          fetch(`${API_URL}/api/inventory`, { headers }),
+          fetch(`${API_URL}/api/kyc-all`, { headers })
         ]);
 
         const orders = await ordersRes.json().catch(() => []);

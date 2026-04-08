@@ -201,7 +201,7 @@ export default function BookPage() {
               <div className="w-10 h-10 rounded-full bg-[#B000FF]/10 flex items-center justify-center text-[#B000FF]">
                 <Truck size={20} />
               </div>
-              <span className="font-bold text-sm tracking-wide">Free Delivery Above â‚¹5000</span>
+              <span className="font-bold text-sm tracking-wide">Free Delivery Above ₹5000</span>
             </div>
           </div>
         </motion.div>
@@ -237,7 +237,7 @@ export default function BookPage() {
                   )}
                   <img src={console.image} alt={console.name} className="w-full h-24 object-cover rounded-xl mb-3" referrerPolicy="no-referrer" />
                   <h4 className="text-sm font-bold text-white">{console.name}</h4>
-                  <p className="text-lg font-black text-[#B000FF]">â‚¹{console.price}<span className="text-xs text-gray-500 font-normal">/day</span></p>
+                  <p className="text-lg font-black text-[#B000FF]">₹{console.price}<span className="text-xs text-gray-500 font-normal">/day</span></p>
                 </button>
               ))}
             </div>
@@ -382,7 +382,7 @@ export default function BookPage() {
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-white">Extra Controller</h4>
-                  <p className="text-xs text-gray-500">â‚¹50/day per controller</p>
+                  <p className="text-xs text-gray-500">₹50/day per controller</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -410,7 +410,7 @@ export default function BookPage() {
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-white">Gaming Headset</h4>
-                  <p className="text-xs text-gray-500">â‚¹75/day</p>
+                  <p className="text-xs text-gray-500">₹75/day</p>
                 </div>
               </div>
               <span className="text-[10px] text-gray-500 uppercase tracking-widest">Coming Soon</span>
@@ -463,27 +463,27 @@ export default function BookPage() {
                 <>
                   <div className="flex justify-between">
                     <span className="text-gray-400">{selectedConsole.name} Ã— {calculations.totalDays} days</span>
-                    <span className="text-white">â‚¹{calculations.basePrice.toLocaleString()}</span>
+                    <span className="text-white">₹{calculations.basePrice.toLocaleString()}</span>
                   </div>
                   {calculations.controllerPrice > 0 && (
                     <div className="flex justify-between">
                       <span className="text-gray-400">Extra Controllers Ã— {calculations.totalDays} days</span>
-                      <span className="text-white">â‚¹{calculations.controllerPrice.toLocaleString()}</span>
+                      <span className="text-white">₹{calculations.controllerPrice.toLocaleString()}</span>
                     </div>
                   )}
                   {calculations.discount > 0 && (
                     <div className="flex justify-between text-emerald-500">
                       <span>Discount (15%)</span>
-                      <span>-â‚¹{calculations.discount.toLocaleString()}</span>
+                      <span>-₹{calculations.discount.toLocaleString()}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span className="text-gray-400">Delivery Fee</span>
-                    <span className="text-white">â‚¹{calculations.deliveryFee}</span>
+                    <span className="text-white">₹{calculations.deliveryFee}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Refundable Deposit</span>
-                    <span className="text-amber-500">â‚¹{calculations.deposit.toLocaleString()}</span>
+                    <span className="text-amber-500">₹{calculations.deposit.toLocaleString()}</span>
                   </div>
                 </>
               ) : (
@@ -498,7 +498,7 @@ export default function BookPage() {
                 <span className="text-gray-400 font-bold">Total Amount</span>
                 <div className="text-right">
                   <span className="text-2xl font-black text-[#B000FF]">
-                    {calculations.totalDays > 0 ? `â‚¹${calculations.total.toLocaleString()}` : 'â‚¹0'}
+                    {calculations.totalDays > 0 ? `₹${calculations.total.toLocaleString()}` : '₹0'}
                   </span>
                   {calculations.totalDays > 0 && (
                     <p className="text-[10px] text-gray-500">Deposit refundable</p>

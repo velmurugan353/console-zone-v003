@@ -93,7 +93,10 @@ export default function AdminOrders() {
   useEffect(() => {
     const loadOrders = async () => {
       try {
-        const response = await fetch('/api/orders');
+        const token = localStorage.getItem('consolezone_token');
+        const response = await fetch(`${API_URL}/api/orders`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (response.ok) {
           const fetchedOrders = await response.json().catch(() => []);
           setOrders(fetchedOrders.map((o: any) => ({ ...o, id: o._id })));

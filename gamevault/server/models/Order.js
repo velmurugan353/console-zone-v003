@@ -33,6 +33,13 @@ const OrderSchema = new mongoose.Schema({
   internalNotes: String,
   timeline: [OrderTimelineSchema],
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+}, {
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+OrderSchema.virtual('id').get(function() {
+  return this._id.toHexString();
 });
 
 module.exports = mongoose.model('Order', OrderSchema);

@@ -46,9 +46,13 @@ const API_URL = import.meta.env.VITE_API_URL || '';
 export const notificationService = {
   sendNotification: async (type: string, email: string, data: any) => {
     try {
+      const token = localStorage.getItem('consolezone_token');
       const response = await fetch(`${API_URL}/api/notifications`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           userId: data.userId,
           email,
@@ -74,7 +78,10 @@ export const notificationService = {
     if (userId === 'admin') return []; // Admin notifications logic placeholder
     
     try {
-      const response = await fetch(`${API_URL}/api/notifications/${userId}`);
+      const token = localStorage.getItem('consolezone_token');
+      const response = await fetch(`${API_URL}/api/notifications/${userId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!response.ok) return [];
       return await response.json().catch(() => []);
     } catch (error) {
@@ -85,7 +92,11 @@ export const notificationService = {
 
   markAsRead: async (id: string) => {
     try {
-      await fetch(`${API_URL}/api/notifications/${id}/read`, { method: 'PATCH' });
+      const token = localStorage.getItem('consolezone_token');
+      await fetch(`${API_URL}/api/notifications/${id}/read`, { 
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
     } catch (error) {
       console.error("Error marking notification as read:", error);
     }

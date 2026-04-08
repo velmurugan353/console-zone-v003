@@ -104,7 +104,7 @@ export default function AdminAnalytics() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Revenue"
-          value="â‚¹72,400"
+          value="₹72,400"
           change="+14.2%"
           trend="up"
           icon={DollarSign}
@@ -112,7 +112,7 @@ export default function AdminAnalytics() {
         />
         <StatCard
           title="Rental Yield"
-          value="â‚¹42,000"
+          value="₹42,000"
           change="+8.5%"
           trend="up"
           icon={Activity}
@@ -120,7 +120,7 @@ export default function AdminAnalytics() {
         />
         <StatCard
           title="Product Sales"
-          value="â‚¹21,400"
+          value="₹21,400"
           change="+12.1%"
           trend="up"
           icon={ShoppingBag}
@@ -128,7 +128,7 @@ export default function AdminAnalytics() {
         />
         <StatCard
           title="Repair Revenue"
-          value="â‚¹9,000"
+          value="₹9,000"
           change="+18.4%"
           trend="up"
           icon={Zap}
@@ -186,7 +186,7 @@ export default function AdminAnalytics() {
                   fontFamily="monospace"
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(value) => `â‚¹${value / 1000}k`}
+                  tickFormatter={(value) => `₹${value / 1000}k`}
                 />
                 <Tooltip
                   contentStyle={{ backgroundColor: '#080112', border: '1px solid #ffffff10', borderRadius: '8px', fontFamily: 'monospace', fontSize: '10px' }}
@@ -273,10 +273,10 @@ export default function AdminAnalytics() {
           </div>
           <div className="space-y-6">
             {[
-              { name: 'Consoles', revenue: 'â‚¹28,400', growth: '+12.5%', color: 'bg-[#B000FF]' },
-              { name: 'VR Gear', revenue: 'â‚¹15,600', growth: '+8.2%', color: 'bg-[#3B82F6]' },
-              { name: 'Games', revenue: 'â‚¹12,500', growth: '+15.1%', color: 'bg-[#10B981]' },
-              { name: 'Repairs', revenue: 'â‚¹9,000', growth: '+18.4%', color: 'bg-[#F59E0B]' },
+              { name: 'Consoles', revenue: '₹28,400', growth: '+12.5%', color: 'bg-[#B000FF]' },
+              { name: 'VR Gear', revenue: '₹15,600', growth: '+8.2%', color: 'bg-[#3B82F6]' },
+              { name: 'Games', revenue: '₹12,500', growth: '+15.1%', color: 'bg-[#10B981]' },
+              { name: 'Repairs', revenue: '₹9,000', growth: '+18.4%', color: 'bg-[#F59E0B]' },
             ].map((cat) => (
               <div key={cat.name} className="space-y-2">
                 <div className="flex justify-between items-center">

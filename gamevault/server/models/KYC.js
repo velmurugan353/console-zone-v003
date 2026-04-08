@@ -39,6 +39,13 @@ const KYCSchema = new mongoose.Schema({
   submittedAt: { type: Date, default: Date.now },
   agentReports: [AgentReportSchema],
   updatedAt: { type: Date, default: Date.now }
+}, {
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+KYCSchema.virtual('id').get(function() {
+  return this._id.toHexString();
 });
 
 KYCSchema.pre('save', function() {

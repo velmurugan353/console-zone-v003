@@ -65,7 +65,10 @@ const normalizeKYC = (doc: any): KYCData => {
 
 export const getKYCStatus = async (userId: string): Promise<KYCData | null> => {
   try {
-    const response = await fetch(`${API_URL}/api/kyc/${userId}`);
+    const token = localStorage.getItem('consolezone_token');
+    const response = await fetch(`${API_URL}/api/kyc/${userId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     if (!response.ok) return null;
     const data = await response.json().catch(() => ({}));
     return normalizeKYC(data);
@@ -77,7 +80,10 @@ export const getKYCStatus = async (userId: string): Promise<KYCData | null> => {
 
 export const getAllKYC = async (): Promise<KYCData[]> => {
   try {
-    const response = await fetch(`${API_URL}/api/kyc-all`);
+    const token = localStorage.getItem('consolezone_token');
+    const response = await fetch(`${API_URL}/api/kyc-all`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     if (!response.ok) return [];
     const data = await response.json().catch(() => []);
     return data.map(normalizeKYC);
@@ -89,9 +95,13 @@ export const getAllKYC = async (): Promise<KYCData[]> => {
 
 export const submitKYC = async (userId: string, data: Partial<KYCData>): Promise<void> => {
   try {
+    const token = localStorage.getItem('consolezone_token');
     const response = await fetch(`${API_URL}/api/kyc`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({ userId, ...data })
     });
     if (!response.ok) throw new Error('KYC submission failed');
@@ -113,8 +123,12 @@ export const uploadKYCDocument = async (
   formData.append('type', type);
 
   try {
+    const token = localStorage.getItem('consolezone_token');
     const response = await fetch(`${API_URL}/api/kyc/upload`, {
       method: 'POST',
+      headers: { 
+        'Authorization': `Bearer ${token}`
+      },
       body: formData,
     });
 
@@ -139,9 +153,13 @@ export const updateKYCStatus = async (
   rejectionReason?: string
 ): Promise<void> => {
   try {
+    const token = localStorage.getItem('consolezone_token');
     const response = await fetch(`${API_URL}/api/kyc/${id}/status`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({ status, notes, verifiedBy, verifiedAt: new Date().toISOString(), rejectionReason })
     });
     if (!response.ok) throw new Error('Failed to update KYC status');

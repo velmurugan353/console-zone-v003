@@ -40,6 +40,13 @@ const InventorySchema = new mongoose.Schema({
   totalRevenue: { type: Number, default: 0 },
   kitRequired: [String],
   updatedAt: { type: Date, default: Date.now }
+}, {
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+InventorySchema.virtual('id').get(function() {
+  return this._id.toHexString();
 });
 
 InventorySchema.pre('save', function() {

@@ -27,7 +27,7 @@ const coupons = [
   {
     id: '2',
     code: 'WELCOME50',
-    discount: 'â‚¹50',
+    discount: '₹50',
     type: 'Fixed Amount',
     usage: 89,
     limit: 200,
@@ -98,7 +98,7 @@ export default function AdminCoupons() {
             <span className="text-xs text-gray-400 font-medium">Last 30 days</span>
           </div>
           <p className="text-gray-400 text-sm">Total Discount Value</p>
-          <p className="text-2xl font-bold text-white mt-1">â‚¹12,450.00</p>
+          <p className="text-2xl font-bold text-white mt-1">₹12,450.00</p>
         </div>
       </div>
 

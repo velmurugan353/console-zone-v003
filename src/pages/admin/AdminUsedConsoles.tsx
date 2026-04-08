@@ -142,7 +142,7 @@ export default function AdminUsedConsoles() {
               {selectedRequest.status === 'pending' && (
                 <div className="pt-6 border-t border-white/10 space-y-4">
                   <div>
-                    <label className="block text-[10px] font-mono uppercase text-gray-400 mb-2">Acquisition Offer (â‚¹)</label>
+                    <label className="block text-[10px] font-mono uppercase text-gray-400 mb-2">Acquisition Offer (₹)</label>
                     <div className="flex space-x-2">
                       <input
                         type="number"

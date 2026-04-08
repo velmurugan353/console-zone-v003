@@ -29,14 +29,21 @@ export default function RentalHistoryPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedEntry, setSelectedEntry] = useState<RentalHistoryEntry | null>(null);
   const [selectedMaintenance, setSelectedMaintenance] = useState<MaintenanceEntry | null>(null);
+  const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
     loadHistory();
   }, []);
 
-  const loadHistory = () => {
-    setRentalHistory(rentalAutomationService.getRentalHistory());
-    setMaintenanceHistory(rentalAutomationService.getMaintenanceHistory());
+  const loadHistory = async () => {
+    const [rentals, maintenance, statsData] = await Promise.all([
+      rentalAutomationService.getRentalHistory(),
+      rentalAutomationService.getMaintenanceHistory(),
+      rentalAutomationService.getStats()
+    ]);
+    setRentalHistory(rentals);
+    setMaintenanceHistory(maintenance);
+    setStats(statsData);
   };
 
   const filteredRentals = rentalHistory.filter(r => {

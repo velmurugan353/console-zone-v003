@@ -85,7 +85,10 @@ export default function AdminRentals() {
 
   const loadRentals = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/rentals`);
+      const token = localStorage.getItem('consolezone_token');
+      const response = await fetch(`${API_URL}/api/rentals`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (response.ok) {
         const fetchedRentals = await response.json().catch(() => []);
         setRentals(fetchedRentals.map((r: any) => ({ 

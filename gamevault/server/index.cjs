@@ -84,6 +84,28 @@ const generateCZID = () => {
   return 'CZ-' + Math.random().toString(36).substring(2, 7).toUpperCase();
 };
 
+// Middleware to verify JWT token
+const auth = (req, res, next) => {
+  const token = req.header('Authorization')?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Access denied. No token provided.' });
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (ex) {
+    res.status(400).json({ error: 'Invalid token.' });
+  }
+};
+
+// Middleware to verify Admin role
+const admin = (req, res, next) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+  }
+  next();
+};
+
 // Auth Routes
 app.post('/api/auth/google', async (req, res) => {
   try {
@@ -93,7 +115,7 @@ app.post('/api/auth/google', async (req, res) => {
       audience: GOOGLE_CLIENT_ID,
     });
     const payload = ticket.getPayload();
-    const { email, name, picture, sub: googleId } = payload;
+    const { email, name, sub: googleId } = payload;
 
     let user = await User.findOne({ email });
 
@@ -161,13 +183,10 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-app.get('/api/auth/me', async (req, res) => {
+app.get('/api/auth/me', auth, async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ error: 'No token' });
-
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const user = await User.findById(decoded.id).select('-password');
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) return res.status(404).json({ error: 'User not found' });
     
     // Fetch verified address from KYC
     let kyc_address = null;
@@ -178,32 +197,21 @@ app.get('/api/auth/me', async (req, res) => {
 
     res.json({ ...user.toObject(), kyc_address });
   } catch (err) {
-    res.status(401).json({ error: 'Invalid token' });
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
 // User Routes
-app.post('/api/users', async (req, res) => {
+app.get('/api/users', auth, admin, async (req, res) => {
   try {
-    const { email, username } = req.body;
-    const user = new User({ email, username });
-    await user.save();
-    res.status(201).json(user);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-app.get('/api/users', async (req, res) => {
-  try {
-    const users = await User.find();
+    const users = await User.find().select('-password');
     res.json(users);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.patch('/api/users/:id/role', async (req, res) => {
+app.patch('/api/users/:id/role', auth, admin, async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(req.params.id, { role: req.body.role }, { new: true });
     res.json(user);
@@ -213,7 +221,7 @@ app.patch('/api/users/:id/role', async (req, res) => {
 });
 
 // Product Routes
-app.post('/api/products', async (req, res) => {
+app.post('/api/products', auth, admin, async (req, res) => {
   try {
     const product = new Product(req.body);
     await product.save();
@@ -233,7 +241,7 @@ app.get('/api/products', async (req, res) => {
 });
 
 // Inventory Routes
-app.get('/api/inventory', async (req, res) => {
+app.get('/api/inventory', auth, admin, async (req, res) => {
   try {
     const items = await Inventory.find().sort({ purchaseDate: -1 });
     res.json(items);
@@ -242,7 +250,7 @@ app.get('/api/inventory', async (req, res) => {
   }
 });
 
-app.post('/api/inventory', async (req, res) => {
+app.post('/api/inventory', auth, admin, async (req, res) => {
   try {
     const item = new Inventory(req.body);
     await item.save();
@@ -252,7 +260,7 @@ app.post('/api/inventory', async (req, res) => {
   }
 });
 
-app.patch('/api/inventory/:id/status', async (req, res) => {
+app.patch('/api/inventory/:id/status', auth, admin, async (req, res) => {
   try {
     const item = await Inventory.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true });
     res.json(item);
@@ -261,7 +269,7 @@ app.patch('/api/inventory/:id/status', async (req, res) => {
   }
 });
 
-app.post('/api/inventory/:id/maintenance', async (req, res) => {
+app.post('/api/inventory/:id/maintenance', auth, admin, async (req, res) => {
   try {
     const { type, technician, notes, cost, healthUpdate, nextStatus } = req.body;
     const item = await Inventory.findById(req.params.id);
@@ -287,7 +295,7 @@ app.post('/api/inventory/:id/maintenance', async (req, res) => {
   }
 });
 
-app.delete('/api/inventory/:id', async (req, res) => {
+app.delete('/api/inventory/:id', auth, admin, async (req, res) => {
   try {
     await Inventory.findByIdAndDelete(req.params.id);
     res.json({ message: 'Asset deleted' });
@@ -296,7 +304,7 @@ app.delete('/api/inventory/:id', async (req, res) => {
   }
 });
 
-app.post('/api/inventory/seed', async (req, res) => {
+app.post('/api/inventory/seed', auth, admin, async (req, res) => {
   try {
     const consoleDefs = [
       { id: 'ps5', name: 'Sony PlayStation 5', category: 'Console', count: 5, price: 900, val: 49999 },
@@ -335,17 +343,21 @@ app.post('/api/inventory/seed', async (req, res) => {
 });
 
 // Rental Routes
-app.get('/api/rentals', async (req, res) => {
+app.get('/api/rentals', auth, async (req, res) => {
   try {
-    const rentals = await Rental.find().populate('userId');
+    const query = req.user.role === 'admin' ? {} : { userId: req.user.id };
+    const rentals = await Rental.find(query).populate('userId', 'username email kyc_status');
     res.json(rentals);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/rentals/user/:userId', async (req, res) => {
+app.get('/api/rentals/user/:userId', auth, async (req, res) => {
   try {
+    if (req.user.role !== 'admin' && req.user.id !== req.params.userId) {
+      return res.status(403).json({ error: 'Access denied.' });
+    }
     const rentals = await Rental.find({ userId: req.params.userId }).sort({ createdAt: -1 });
     res.json(rentals);
   } catch (err) {
@@ -353,16 +365,26 @@ app.get('/api/rentals/user/:userId', async (req, res) => {
   }
 });
 
-app.patch('/api/rentals/:id', async (req, res) => {
+app.patch('/api/rentals/:id', auth, async (req, res) => {
   try {
-    const rental = await Rental.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(rental);
+    const rental = await Rental.findById(req.params.id);
+    if (!rental) return res.status(404).json({ error: 'Rental not found' });
+
+    if (req.user.role !== 'admin' && rental.userId.toString() !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied.' });
+    }
+
+    // Only admin can update certain fields
+    const updates = req.user.role === 'admin' ? req.body : { status: req.body.status };
+    
+    const updatedRental = await Rental.findByIdAndUpdate(req.params.id, updates, { new: true });
+    res.json(updatedRental);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
-app.post('/api/rentals/catalog', async (req, res) => {
+app.post('/api/rentals/catalog', auth, admin, async (req, res) => {
   try {
     const rental = new Rental(req.body);
     await rental.save();
@@ -372,7 +394,7 @@ app.post('/api/rentals/catalog', async (req, res) => {
   }
 });
 
-app.delete('/api/rentals/:id', async (req, res) => {
+app.delete('/api/rentals/:id', auth, admin, async (req, res) => {
   try {
     await Rental.findByIdAndDelete(req.params.id);
     res.json({ message: 'Rental deleted' });
@@ -381,9 +403,12 @@ app.delete('/api/rentals/:id', async (req, res) => {
   }
 });
 
-app.post('/api/rentals', async (req, res) => {
+const normalizeAddress = (addr) => (addr || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+app.post('/api/rentals', auth, async (req, res) => {
   try {
-    const { userId, shippingAddress, deliveryMethod, startDate, endDate, pickupSlot, returnSlot } = req.body;
+    const { shippingAddress, deliveryMethod, startDate, pickupSlot } = req.body;
+    const userId = req.user.id;
     
     // Validate User and KYC
     const user = await User.findById(userId);
@@ -398,11 +423,7 @@ app.post('/api/rentals', async (req, res) => {
       const kyc = await KYC.findOne({ userId });
       if (!kyc) return res.status(404).json({ error: 'KYC record not found' });
 
-      // Clean addresses for comparison (simple trim and lowercase)
-      const cleanShipping = (shippingAddress || '').trim().toLowerCase();
-      const cleanKYC = (kyc.address || '').trim().toLowerCase();
-
-      if (cleanShipping !== cleanKYC) {
+      if (normalizeAddress(shippingAddress) !== normalizeAddress(kyc.address)) {
         return res.status(403).json({ error: 'ADDRESS_MISMATCH: Deliveries are strictly restricted to your verified KYC residency.' });
       }
     }
@@ -429,7 +450,7 @@ app.post('/api/rentals', async (req, res) => {
       }
     }
 
-    const rental = new Rental(req.body);
+    const rental = new Rental({ ...req.body, userId });
     await rental.save();
     res.status(201).json(rental);
   } catch (err) {
@@ -474,14 +495,49 @@ app.get('/api/rentals/slots/:date', async (req, res) => {
   }
 });
 
+app.get('/api/inventory/available', async (req, res) => {
+  try {
+    const { startDate, endDate, consoleId } = req.query;
+    if (!startDate || !endDate || !consoleId) {
+      return res.status(400).json({ error: 'Missing required parameters: startDate, endDate, consoleId' });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // 1. Get all units for this consoleId
+    const units = await Inventory.find({ consoleId, status: { $ne: 'Retired' } });
+    
+    // 2. Get all overlapping rentals
+    const overlappingRentals = await Rental.find({
+      $or: [
+        { startDate: { $lte: end }, endDate: { $gte: start } }
+      ],
+      status: { $nin: ['cancelled', 'completed', 'returned'] }
+    });
+
+    const rentedUnitIds = overlappingRentals.map(r => r.unitId);
+    
+    const availableUnits = units.filter(u => !rentedUnitIds.includes(u._id.toString()) && u.status === 'Available');
+
+    res.json({
+      available: availableUnits.length,
+      units: availableUnits.map(u => ({ id: u._id, serialNumber: u.serialNumber })),
+      total: units.length
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // KYC Routes
-app.post('/api/kyc/upload', upload.single('file'), (req, res) => {
+app.post('/api/kyc/upload', auth, upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   const fileUrl = `/uploads/${req.file.filename}`;
   res.json({ url: fileUrl });
 });
 
-app.get('/api/kyc-all', async (req, res) => {
+app.get('/api/kyc-all', auth, admin, async (req, res) => {
   try {
     const kycs = await KYC.find().sort({ submittedAt: -1 });
     res.json(kycs);
@@ -490,7 +546,7 @@ app.get('/api/kyc-all', async (req, res) => {
   }
 });
 
-app.delete('/api/kyc/:userId', async (req, res) => {
+app.delete('/api/kyc/:userId', auth, admin, async (req, res) => {
   try {
     const { userId } = req.params;
     await KYC.findOneAndDelete({ userId });
@@ -504,8 +560,11 @@ app.delete('/api/kyc/:userId', async (req, res) => {
   }
 });
 
-app.get('/api/kyc/:userId', async (req, res) => {
+app.get('/api/kyc/:userId', auth, async (req, res) => {
   try {
+    if (req.user.role !== 'admin' && req.user.id !== req.params.userId) {
+      return res.status(403).json({ error: 'Access denied.' });
+    }
     const kyc = await KYC.findOne({ userId: req.params.userId });
     res.json(kyc || { status: null });
   } catch (err) {
@@ -513,10 +572,12 @@ app.get('/api/kyc/:userId', async (req, res) => {
   }
 });
 
-app.post('/api/kyc', async (req, res) => {
+app.post('/api/kyc', auth, async (req, res) => {
   try {
     const { userId, ...data } = req.body;
     
+    if (req.user.id !== userId) return res.status(403).json({ error: 'Access denied.' });
+
     // Check if user exists
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -616,7 +677,7 @@ app.post('/api/kyc', async (req, res) => {
   }
 });
 
-app.patch('/api/kyc/:id/status', async (req, res) => {
+app.patch('/api/kyc/:id/status', auth, admin, async (req, res) => {
   try {
     const { status, notes, verifiedBy, verifiedAt, rejectionReason, allowResubmission } = req.body;
     const updateData = {
@@ -647,17 +708,21 @@ app.patch('/api/kyc/:id/status', async (req, res) => {
 });
 
 // Order Routes
-app.get('/api/orders', async (req, res) => {
+app.get('/api/orders', auth, async (req, res) => {
   try {
-    const orders = await Order.find().sort({ date: -1 });
+    const query = req.user.role === 'admin' ? {} : { userId: req.user.id };
+    const orders = await Order.find(query).sort({ date: -1 });
     res.json(orders);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/orders/user/:userId', async (req, res) => {
+app.get('/api/orders/user/:userId', auth, async (req, res) => {
   try {
+    if (req.user.role !== 'admin' && req.user.id !== req.params.userId) {
+      return res.status(403).json({ error: 'Access denied.' });
+    }
     const orders = await Order.find({ userId: req.params.userId }).sort({ date: -1 });
     res.json(orders);
   } catch (err) {
@@ -665,9 +730,10 @@ app.get('/api/orders/user/:userId', async (req, res) => {
   }
 });
 
-app.post('/api/orders', async (req, res) => {
+app.post('/api/orders', auth, async (req, res) => {
   try {
-    const { userId, shippingAddress } = req.body;
+    const { shippingAddress } = req.body;
+    const userId = req.user.id;
     
     // Validate User and KYC
     const user = await User.findById(userId);
@@ -681,30 +747,19 @@ app.post('/api/orders', async (req, res) => {
     const kyc = await KYC.findOne({ userId });
     if (!kyc) return res.status(404).json({ error: 'KYC record not found' });
 
-    const cleanShipping = (shippingAddress || '').trim().toLowerCase();
-    const cleanKYC = (kyc.address || '').trim().toLowerCase();
-
-    if (cleanShipping !== cleanKYC) {
+    if (normalizeAddress(shippingAddress) !== normalizeAddress(kyc.address)) {
       return res.status(403).json({ error: 'ADDRESS_MISMATCH: Deliveries are strictly restricted to your verified KYC residency.' });
     }
 
-    // FIRST TIME ONLY HOME DELIVERY DONT ALLOW STORE BICKUP
-    // Assuming orders also have a deliveryMethod, though not explicitly in the schema shown earlier, 
-    // but the user prompt implies a general rule.
-    // If the order schema doesn't have it, we might need to add it or it might be buy-only.
-    // Looking at Step3DeliveryOptions, it's used in RentalBookingPage.
-    
     const orderCount = await Order.countDocuments({ userId });
     const rentalCount = await Rental.countDocuments({ userId });
     if (orderCount === 0 && rentalCount === 0) {
-      // For orders, if they don't have deliveryMethod, we might just enforce shipping address exists.
-      // But the prompt says "DONT ALLOW STORE PICKUP".
       if (req.body.deliveryMethod === 'pickup') {
         return res.status(403).json({ error: 'FIRST_TIME_RESTRICTION: First-time orders require Home Delivery for security validation.' });
       }
     }
 
-    const order = new Order(req.body);
+    const order = new Order({ ...req.body, userId });
     await order.save();
     res.status(201).json(order);
   } catch (err) {
@@ -712,7 +767,7 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
-app.patch('/api/orders/:id', async (req, res) => {
+app.patch('/api/orders/:id', auth, admin, async (req, res) => {
   try {
     const order = await Order.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(order);
@@ -722,8 +777,11 @@ app.patch('/api/orders/:id', async (req, res) => {
 });
 
 // Notification Routes
-app.get('/api/notifications/:userId', async (req, res) => {
+app.get('/api/notifications/:userId', auth, async (req, res) => {
   try {
+    if (req.user.role !== 'admin' && req.user.id !== req.params.userId) {
+      return res.status(403).json({ error: 'Access denied.' });
+    }
     const notifications = await Notification.find({ userId: req.params.userId }).sort({ createdAt: -1 });
     res.json(notifications);
   } catch (err) {
@@ -731,7 +789,7 @@ app.get('/api/notifications/:userId', async (req, res) => {
   }
 });
 
-app.post('/api/notifications', async (req, res) => {
+app.post('/api/notifications', auth, admin, async (req, res) => {
   try {
     const notification = new Notification(req.body);
     await notification.save();
@@ -741,9 +799,14 @@ app.post('/api/notifications', async (req, res) => {
   }
 });
 
-app.patch('/api/notifications/:id/read', async (req, res) => {
+app.patch('/api/notifications/:id/read', auth, async (req, res) => {
   try {
-    const notification = await Notification.findByIdAndUpdate(req.params.id, { read: true }, { new: true });
+    const notification = await Notification.findById(req.params.id);
+    if (!notification) return res.status(404).json({ error: 'Notification not found' });
+    if (notification.userId.toString() !== req.user.id) return res.status(403).json({ error: 'Access denied.' });
+
+    notification.read = true;
+    await notification.save();
     res.json(notification);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -751,7 +814,7 @@ app.patch('/api/notifications/:id/read', async (req, res) => {
 });
 
 // Notification Log Routes (MongoDB)
-app.get('/api/notification-logs', async (req, res) => {
+app.get('/api/notification-logs', auth, admin, async (req, res) => {
   try {
     const { customerId, rentalId, status, channel, page = 1, limit = 50 } = req.query;
     const query = {};
@@ -771,7 +834,7 @@ app.get('/api/notification-logs', async (req, res) => {
   }
 });
 
-app.post('/api/notification-logs', async (req, res) => {
+app.post('/api/notification-logs', auth, admin, async (req, res) => {
   try {
     const { templateId, templateName, customerId, customerName, customerEmail, customerPhone, channels, status, subject, body, rentalId, trigger, metadata, deliveryResults } = req.body;
     const logId = `NOTIF-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
@@ -801,7 +864,7 @@ app.post('/api/notification-logs', async (req, res) => {
   }
 });
 
-app.get('/api/notification-logs/stats', async (req, res) => {
+app.get('/api/notification-logs/stats', auth, admin, async (req, res) => {
   try {
     const total = await NotificationLog.countDocuments();
     const sent = await NotificationLog.countDocuments({ status: { $in: ['sent', 'delivered', 'opened'] } });
@@ -842,7 +905,7 @@ app.get('/api/notification-logs/stats', async (req, res) => {
   }
 });
 
-app.patch('/api/notification-logs/:id/status', async (req, res) => {
+app.patch('/api/notification-logs/:id/status', auth, admin, async (req, res) => {
   try {
     const log = await NotificationLog.findOneAndUpdate(
       { logId: req.params.id },
@@ -856,16 +919,17 @@ app.patch('/api/notification-logs/:id/status', async (req, res) => {
 });
 
 // Repair Routes
-app.get('/api/repairs', async (req, res) => {
+app.get('/api/repairs', auth, async (req, res) => {
   try {
-    const repairs = await Repair.find().sort({ createdAt: -1 });
+    const query = req.user.role === 'admin' ? {} : { userId: req.user.id };
+    const repairs = await Repair.find(query).sort({ createdAt: -1 });
     res.json(repairs);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.patch('/api/repairs/:id', async (req, res) => {
+app.patch('/api/repairs/:id', auth, admin, async (req, res) => {
   try {
     const repair = await Repair.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(repair);
@@ -874,9 +938,9 @@ app.patch('/api/repairs/:id', async (req, res) => {
   }
 });
 
-app.post('/api/repairs', async (req, res) => {
+app.post('/api/repairs', auth, async (req, res) => {
   try {
-    const repair = new Repair(req.body);
+    const repair = new Repair({ ...req.body, userId: req.user.id });
     await repair.save();
     res.status(201).json(repair);
   } catch (err) {
@@ -885,16 +949,17 @@ app.post('/api/repairs', async (req, res) => {
 });
 
 // SellRequest Routes
-app.get('/api/sell-requests', async (req, res) => {
+app.get('/api/sell-requests', auth, async (req, res) => {
   try {
-    const requests = await SellRequest.find().sort({ createdAt: -1 });
+    const query = req.user.role === 'admin' ? {} : { userId: req.user.id };
+    const requests = await SellRequest.find(query).sort({ createdAt: -1 });
     res.json(requests);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.patch('/api/sell-requests/:id', async (req, res) => {
+app.patch('/api/sell-requests/:id', auth, admin, async (req, res) => {
   try {
     const request = await SellRequest.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(request);
@@ -903,9 +968,9 @@ app.patch('/api/sell-requests/:id', async (req, res) => {
   }
 });
 
-app.post('/api/sell-requests', async (req, res) => {
+app.post('/api/sell-requests', auth, async (req, res) => {
   try {
-    const request = new SellRequest(req.body);
+    const request = new SellRequest({ ...req.body, userId: req.user.id });
     await request.save();
     res.status(201).json(request);
   } catch (err) {
@@ -938,33 +1003,6 @@ app.post('/api/submit', upload.fields([
     });
   } catch (err) {
     res.status(400).json({ error: err.message });
-  }
-});
-
-// Emergency Admin Creation (Troubleshooting Only)
-app.get('/api/auth/emergency-admin', async (req, res) => {
-  try {
-    const adminEmail = 'admin@consolezone.com';
-    let user = await User.findOne({ email: adminEmail });
-    
-    if (user) {
-      user.role = 'admin';
-      user.password = await bcrypt.hash('admin123', 10);
-      await user.save();
-      return res.json({ message: 'Admin account restored', user: { email: user.email, role: user.role } });
-    }
-
-    user = new User({
-      email: adminEmail,
-      username: 'Admin',
-      password: await bcrypt.hash('admin123', 10),
-      role: 'admin',
-      consolezone_id: 'CZ-ADMIN'
-    });
-    await user.save();
-    res.json({ message: 'Admin account created', user: { email: user.email, role: user.role } });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
 });
 

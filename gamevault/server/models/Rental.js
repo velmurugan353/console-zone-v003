@@ -51,6 +51,13 @@ const RentalSchema = new mongoose.Schema({
     timestamp: String,
     note: String
   }]
+}, {
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+RentalSchema.virtual('id').get(function() {
+  return this._id.toHexString();
 });
 
 module.exports = mongoose.model('Rental', RentalSchema);

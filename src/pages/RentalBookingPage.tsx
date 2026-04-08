@@ -405,20 +405,34 @@ export default function RentalBookingPage() {
       setIsCheckingAvailability(true);
       setAvailabilityError(null);
       
-      const result = await rentalService.checkAvailability(
-        consoleData.id, 
-        bookingState.duration.startDate, 
-        bookingState.duration.endDate
-      );
+      try {
+        const token = localStorage.getItem('consolezone_token');
+        const { startDate, endDate } = bookingState.duration;
+        const res = await fetch(
+          `${API_URL}/api/inventory/available?consoleId=${consoleData.id}&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        
+        const result = await res.json();
 
-      setIsCheckingAvailability(false);
+        if (!res.ok || result.available === 0) {
+          setAvailabilityError("NEGATIVE. NO UNITS AVAILABLE IN FLEET FOR SELECTED WINDOW.");
+          setIsCheckingAvailability(false);
+          return;
+        }
 
-      if (!result.available) {
-        setAvailabilityError("NEGATIVE. NO UNITS AVAILABLE IN FLEET FOR SELECTED WINDOW.");
+        setBookingState(prev => ({ 
+          ...prev, 
+          unitId: result.units[0].id,
+          serialNumber: result.units[0].serialNumber
+        }));
+      } catch (err) {
+        setAvailabilityError("SECURITY SCAN FAILURE. MATRIX CONNECTION UNSTABLE.");
+        setIsCheckingAvailability(false);
         return;
       }
 
-      setBookingState(prev => ({ ...prev, unitId: result.units[0].id }));
+      setIsCheckingAvailability(false);
     }
 
     setCompletedSteps(prev => [...new Set([...prev, currentStep])]);
@@ -481,9 +495,13 @@ export default function RentalBookingPage() {
             ]
           };
 
+          const token = localStorage.getItem('consolezone_token');
           const apiRes = await fetch(`${API_URL}/api/rentals`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify(rentalData)
           });
 

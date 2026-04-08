@@ -96,9 +96,12 @@ export default function AdminInventory() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      const token = localStorage.getItem('consolezone_token');
+      const headers = { 'Authorization': `Bearer ${token}` };
+
       const [inventoryRes, productsRes] = await Promise.all([
-        fetch(`${API_URL}/api/inventory`),
-        fetch(`${API_URL}/api/products`)
+        fetch(`${API_URL}/api/inventory`, { headers }),
+        fetch(`${API_URL}/api/products`, { headers })
       ]);
       
       const invData = await inventoryRes.json().catch(() => []);

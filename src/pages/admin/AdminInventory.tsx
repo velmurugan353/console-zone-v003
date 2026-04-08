@@ -30,7 +30,9 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '../../lib/utils';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = import.meta.env.PROD && !import.meta.env.VITE_API_URL_FORCE 
+  ? '' 
+  : (import.meta.env.VITE_API_URL || '');
 
 type InventoryStatus = 'Available' | 'Rented' | 'Maintenance' | 'Retired';
 

@@ -90,7 +90,9 @@ export const DEFAULT_RULES: AutomationRules = {
   latePenaltyPerDay: 500
 };
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = import.meta.env.PROD && !import.meta.env.VITE_API_URL_FORCE 
+  ? '' 
+  : (import.meta.env.VITE_API_URL || '');
 
 class RentalAutomationService {
   private rules: AutomationRules = { ...DEFAULT_RULES };

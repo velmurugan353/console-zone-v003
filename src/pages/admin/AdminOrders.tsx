@@ -36,7 +36,9 @@ import { invoiceService } from '../../services/invoiceService';
 import InvoiceModal from '../../components/admin/InvoiceModal';
 import ViewKYCModal from '../../components/admin/ViewKYCModal';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = import.meta.env.PROD && !import.meta.env.VITE_API_URL_FORCE 
+  ? '' 
+  : (import.meta.env.VITE_API_URL || '');
 
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 

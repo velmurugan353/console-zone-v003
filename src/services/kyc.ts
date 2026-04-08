@@ -36,7 +36,9 @@ export interface KYCStatus {
   fullName?: string;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = import.meta.env.PROD && !import.meta.env.VITE_API_URL_FORCE 
+  ? '' 
+  : (import.meta.env.VITE_API_URL || '');
 
 const normalizeKYC = (doc: any): KYCData => {
   const normalizeUrl = (url?: string) => {

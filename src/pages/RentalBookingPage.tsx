@@ -37,7 +37,9 @@ import { getControllerSettings } from '../services/controller-settings';
 import { rentalService } from '../services/rentalService';
 import { resolveRentalConsoleKey } from '../services/rentalAvailability';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = import.meta.env.PROD && !import.meta.env.VITE_API_URL_FORCE 
+  ? '' 
+  : (import.meta.env.VITE_API_URL || '');
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

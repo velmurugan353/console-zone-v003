@@ -37,7 +37,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import ViewKYCModal from '../../components/admin/ViewKYCModal';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = import.meta.env.PROD && !import.meta.env.VITE_API_URL_FORCE 
+  ? '' 
+  : (import.meta.env.VITE_API_URL || '');
 
 type RentalStatus = 'active' | 'completed' | 'late' | 'pending';
 

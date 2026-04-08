@@ -29,7 +29,15 @@ export default function RentalHistoryPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedEntry, setSelectedEntry] = useState<RentalHistoryEntry | null>(null);
   const [selectedMaintenance, setSelectedMaintenance] = useState<MaintenanceEntry | null>(null);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<any>({
+    totalRentals: 0,
+    activeRentals: 0,
+    completedRentals: 0,
+    cancelledRentals: 0,
+    lateRentals: 0,
+    totalRevenue: 0,
+    totalMaintenanceCost: 0
+  });
 
   useEffect(() => {
     loadHistory();
@@ -61,8 +69,6 @@ export default function RentalHistoryPage() {
     m.technician.toLowerCase().includes(search.toLowerCase()) ||
     m.type.toLowerCase().includes(search.toLowerCase())
   );
-
-  const stats = rentalAutomationService.getStats();
 
   const StatusBadge = ({ status }: { status: string }) => {
     const styles: Record<string, string> = {

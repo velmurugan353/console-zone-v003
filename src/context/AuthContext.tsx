@@ -76,11 +76,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth();
   }, []);
 
-  const login = async (email: string, password?: string) => {
+  const login = async (email: string, password?: string, role: 'user' | 'admin' = 'user') => {
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password, role })
     });
 
     const data = await response.json().catch(() => ({}));
@@ -88,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     localStorage.setItem('consolezone_token', data.token);
     setUser({
-      id: data.user.id,
+      id: data.user.id || data.user._id,
       name: data.user.username,
       email: data.user.email,
       role: data.user.role,

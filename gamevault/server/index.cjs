@@ -169,17 +169,59 @@ app.post('/api/auth/register', async (req, res) => {
 
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ error: 'User not found' });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
 
+    // If a specific role is requested (like 'admin'), verify it
+    if (role && user.role !== role) {
+      return res.status(403).json({ error: `Access denied. You do not have ${role} privileges.` });
+    }
+
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '30d' });
     res.json({ token, user: { id: user._id, email: user.email, username: user.username, role: user.role, kyc_status: user.kyc_status, consolezone_id: user.consolezone_id } });
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+// Setup Route - One-time use to create initial admin
+app.get('/api/auth/setup', async (req, res) => {
+  try {
+    const adminCount = await User.countDocuments({ role: 'admin' });
+    if (adminCount > 5) return res.status(403).json({ error: 'Setup already completed.' });
+
+    const admins = [
+      { email: 'admin@consolezone.com', username: 'Admin' },
+      { email: 'Cheersediting@gmail.com', username: 'Chief Administrator' }
+    ];
+
+    const results = [];
+    for (const data of admins) {
+      let user = await User.findOne({ email: data.email });
+      if (!user) {
+        user = new User({
+          ...data,
+          password: await bcrypt.hash('admin123', 10),
+          role: 'admin',
+          consolezone_id: generateCZID()
+        });
+        await user.save();
+        results.push(`Created ${data.email}`);
+      } else {
+        user.role = 'admin';
+        user.password = await bcrypt.hash('admin123', 10);
+        await user.save();
+        results.push(`Updated ${data.email}`);
+      }
+    }
+
+    res.json({ message: 'Setup successful', results });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

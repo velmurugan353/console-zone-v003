@@ -20,6 +20,10 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const API_URL = import.meta.env.PROD && !import.meta.env.VITE_API_URL_FORCE 
+  ? '' 
+  : (import.meta.env.VITE_API_URL || '');
+
 type ProductType = 'store' | 'rental' | 'repair';
 
 interface AdminProduct extends Product {
@@ -55,7 +59,10 @@ export default function AdminProducts() {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const response = await fetch('/api/products');
+        const token = localStorage.getItem('consolezone_token');
+        const response = await fetch(`${API_URL}/api/products`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (response.ok) {
           const fetchedProducts = await response.json().catch(() => []);
           setProducts(fetchedProducts.map((p: any) => ({
@@ -75,8 +82,14 @@ export default function AdminProducts() {
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this item?')) {
       try {
-        await fetch(`/api/products/${id}`, { method: 'DELETE' });
-        setProducts(prev => prev.filter(p => p.id !== id));
+        const token = localStorage.getItem('consolezone_token');
+        const response = await fetch(`${API_URL}/api/products/${id}`, { 
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          setProducts(prev => prev.filter(p => p.id !== id));
+        }
       } catch (error) {
         console.error('Delete failed:', error);
       }
@@ -85,9 +98,13 @@ export default function AdminProducts() {
 
   const toggleStatus = async (id: string, currentStatus: boolean) => {
     try {
-      const response = await fetch(`/api/products/${id}`, {
+      const token = localStorage.getItem('consolezone_token');
+      const response = await fetch(`${API_URL}/api/products/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ enabled: !currentStatus })
       });
       if (response.ok) {
@@ -110,12 +127,16 @@ export default function AdminProducts() {
 
     setIsSubmitting(true);
     try {
+      const token = localStorage.getItem('consolezone_token');
       const method = editingProductId ? 'PATCH' : 'POST';
-      const url = editingProductId ? `/api/products/${editingProductId}` : '/api/products';
+      const url = editingProductId ? `${API_URL}/api/products/${editingProductId}` : `${API_URL}/api/products`;
       
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(newProduct)
       });
 

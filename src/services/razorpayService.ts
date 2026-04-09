@@ -21,8 +21,10 @@ export interface RazorpayOptions {
     };
 }
 
+const ENV = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env : ({} as any);
+
 class RazorpayService {
-    private keyId: string = import.meta.env.VITE_RAZORPAY_KEY_ID || '';
+    private keyId: string = ENV.VITE_RAZORPAY_KEY_ID || '';
 
     constructor() { }
 

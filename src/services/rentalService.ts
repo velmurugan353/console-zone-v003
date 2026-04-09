@@ -9,7 +9,8 @@ export interface RentalUnit {
     name: string;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+const ENV = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env : ({} as any);
+const API_URL = ENV.VITE_API_URL || '';
 
 export const rentalService = {
     /**

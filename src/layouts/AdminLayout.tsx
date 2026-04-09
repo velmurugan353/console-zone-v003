@@ -201,7 +201,9 @@ export default function AdminLayout() {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   useEffect(() => {
+    console.log('[ADMIN_LAYOUT] Auth Check - Loading:', loading, 'User:', user?.name, 'Role:', user?.role, 'IsAdmin:', isAdmin);
     if (!loading && (!user || !isAdmin)) {
+      console.warn('[ADMIN_LAYOUT] Unauthorized access detected. Redirecting to login...');
       navigate('/login');
     }
   }, [user, isAdmin, navigate, loading]);

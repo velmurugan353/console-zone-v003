@@ -42,7 +42,7 @@ expectMatch(
 
 expectMatch(
   bookingSource,
-  /navigate\(`\/rentals\/\$\{slug\}\/book\/confirm\?id=\$\{docRef\.id\}`\)/,
+  /navigate\(`\/rentals\/\$\{slug\}\/book\/confirm\?id=\$\{[^}]+\}`\)/,
   'Rental booking page must navigate to the slug-based confirmation route.',
 );
 

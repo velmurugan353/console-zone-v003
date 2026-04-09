@@ -47,6 +47,7 @@ export default function AdminInvoices() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'order' | 'rental' | 'buyback' | 'manual'>('all');
+  const [systemTime] = useState(new Date().toLocaleTimeString());
   
   const [previewData, setPreviewData] = useState<InvoiceData | null>(null);
   const [showManualForm, setShowManualForm] = useState(false);
@@ -315,7 +316,7 @@ export default function AdminInvoices() {
           </button>
           <div className="bg-[#080112] border border-white/10 rounded-xl px-4 py-2 flex items-center gap-3">
             <Clock className="h-4 w-4 text-[#B000FF]" />
-            <span className="text-white font-mono text-[10px] uppercase tracking-widest font-bold">System_Time: {new Date().toLocaleTimeString()}</span>
+            <span className="text-white font-mono text-[10px] uppercase tracking-widest font-bold">System_Time: {systemTime}</span>
           </div>
         </div>
       </div>

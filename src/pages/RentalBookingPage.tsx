@@ -198,7 +198,17 @@ export default function RentalBookingPage() {
         delivery: { ...prev.delivery, address: kycData.address }
       }));
     }
-  }, [bookingState.delivery.method, kycData]);
+    }, [kycData, bookingState.delivery.method]);
+
+    useEffect(() => {
+    const phone = user?.phone || kycData?.phone;
+    if (phone && !bookingState.delivery.phone) {
+      setBookingState(prev => ({
+        ...prev,
+        delivery: { ...prev.delivery, phone }
+      }));
+    }
+    }, [user?.phone, kycData?.phone]);
 
   useEffect(() => {
     const savedBooking = sessionStorage.getItem('pending_rental_booking');
@@ -363,7 +373,7 @@ export default function RentalBookingPage() {
 
     const currentAddonsCost = bookingState.addons.extraControllers * ctrlRate * (bookingState.duration.type === 'daily' ? bookingState.duration.totalDays : 1);
     const currentRentalCost = baseConsoleRate + currentAddonsCost;
-    const currentDeliveryFee = bookingState.delivery.method === 'delivery' ? 9.99 : 0;
+    const currentDeliveryFee = bookingState.delivery.method === 'delivery' ? 500 : 0;
     const currentDeposit = config.securityDeposit || consoleData.deposit;
     const currentSubtotal = currentRentalCost + currentDeliveryFee;
     const currentDiscountAmount = (currentSubtotal * bookingState.payment.discount) / 100;

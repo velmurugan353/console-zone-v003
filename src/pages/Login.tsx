@@ -4,9 +4,22 @@ import { useAuth } from '../context/AuthContext';
 import { ShieldAlert, ChevronLeft } from 'lucide-react';
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (user) {
+      console.log('[LOGIN_PAGE] User already authenticated:', user.name, 'Role:', user.role);
+      if (user.role === 'admin') {
+        console.log('[LOGIN_PAGE] Redirecting to /admin');
+        navigate('/admin');
+      } else {
+        console.log('[LOGIN_PAGE] Redirecting to /dashboard');
+        navigate('/dashboard');
+      }
+    }
+  }, [user, navigate]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

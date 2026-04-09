@@ -3,17 +3,17 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
-const User = require('./models/User');
-const Product = require('./models/Product');
-const Submission = require('./models/Submission');
-const Rental = require('./models/Rental');
-const KYC = require('./models/KYC');
-const Order = require('./models/Order');
-const Notification = require('./models/Notification');
-const NotificationLog = require('./models/NotificationLog');
-const Repair = require('./models/Repair');
-const SellRequest = require('./models/SellRequest');
-const Inventory = require('./models/Inventory');
+const User = require('./models/User.cjs');
+const Product = require('./models/Product.cjs');
+const Submission = require('./models/Submission.cjs');
+const Rental = require('./models/Rental.cjs');
+const KYC = require('./models/KYC.cjs');
+const Order = require('./models/Order.cjs');
+const Notification = require('./models/Notification.cjs');
+const NotificationLog = require('./models/NotificationLog.cjs');
+const Repair = require('./models/Repair.cjs');
+const SellRequest = require('./models/SellRequest.cjs');
+const Inventory = require('./models/Inventory.cjs');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -141,7 +141,7 @@ app.post('/api/auth/google', async (req, res) => {
 
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { email, username, password } = req.body;
+    const { email, username, password, phone } = req.body;
     
     // Check if user exists
     const existingUser = await User.findOne({ email });
@@ -154,6 +154,7 @@ app.post('/api/auth/register', async (req, res) => {
       email,
       username,
       password: hashedPassword,
+      phone,
       role: 'user',
       consolezone_id: generateCZID()
     });

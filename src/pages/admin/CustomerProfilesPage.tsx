@@ -30,6 +30,7 @@ export default function CustomerProfilesPage() {
   const [search, setSearch] = useState('');
   const [riskFilter, setRiskFilter] = useState<string>('all');
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerProfile | null>(null);
+  const [selectedCustomerRentals, setSelectedCustomerRentals] = useState<any[]>([]);
   const [editingNote, setEditingNote] = useState(false);
   const [noteText, setNoteText] = useState('');
 
@@ -37,9 +38,22 @@ export default function CustomerProfilesPage() {
     loadCustomers();
   }, []);
 
-  const loadCustomers = () => {
-    setCustomers(rentalAutomationService.getCustomers());
+  const loadCustomers = async () => {
+    const data = await rentalAutomationService.getCustomers();
+    setCustomers(data);
   };
+
+  useEffect(() => {
+    const fetchRentals = async () => {
+      if (selectedCustomer) {
+        const rentals = await rentalAutomationService.getRentalsByCustomer(selectedCustomer.id);
+        setSelectedCustomerRentals(rentals);
+      } else {
+        setSelectedCustomerRentals([]);
+      }
+    };
+    fetchRentals();
+  }, [selectedCustomer]);
 
   const filteredCustomers = customers.filter(c => {
     const matchesSearch =
@@ -50,13 +64,14 @@ export default function CustomerProfilesPage() {
     return matchesSearch && matchesRisk;
   });
 
-  const handleSaveNote = () => {
+  const handleSaveNote = async () => {
     if (!selectedCustomer) return;
-    rentalAutomationService.addCustomerNote(selectedCustomer.id, noteText);
+    await rentalAutomationService.addCustomerNote(selectedCustomer.id, noteText);
     setNoteText('');
     setEditingNote(false);
-    loadCustomers();
-    setSelectedCustomer(rentalAutomationService.getCustomerById(selectedCustomer.id));
+    await loadCustomers();
+    const updated = await rentalAutomationService.getCustomerById(selectedCustomer.id);
+    setSelectedCustomer(updated);
   };
 
   const RiskBadge = ({ risk }: { risk: string }) => {
@@ -348,28 +363,26 @@ export default function CustomerProfilesPage() {
               {/* Rental History */}
               <div className="bg-white/5 rounded-xl p-4">
                 <p className="text-[8px] text-gray-500 uppercase font-bold mb-3">Rental History</p>
-                {(() => {
-                  const rentals = rentalAutomationService.getRentalsByCustomer(selectedCustomer.id);
-                  if (rentals.length === 0) return <p className="text-xs text-gray-600">No rental history</p>;
-                  return (
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {rentals.map((r) => (
-                        <div key={r.id} className="flex items-center justify-between bg-black/30 rounded-lg p-3 text-xs">
-                          <div>
-                            <p className="text-white font-bold">{r.product}</p>
-                            <p className="text-gray-500 font-mono text-[9px]">{new Date(r.startDate).toLocaleDateString()} - {new Date(r.endDate).toLocaleDateString()}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-emerald-400 font-bold">₹{r.totalPrice}</p>
-                            <p className={`text-[8px] font-bold uppercase ${r.status === 'completed' ? 'text-emerald-500' : r.status === 'active' ? 'text-blue-500' : r.status === 'cancelled' ? 'text-red-500' : 'text-amber-500'}`}>
-                              {r.status}
-                            </p>
-                          </div>
+                {selectedCustomerRentals.length === 0 ? (
+                  <p className="text-xs text-gray-600">No rental history</p>
+                ) : (
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {selectedCustomerRentals.map((r) => (
+                      <div key={r.id} className="flex items-center justify-between bg-black/30 rounded-lg p-3 text-xs">
+                        <div>
+                          <p className="text-white font-bold">{r.product}</p>
+                          <p className="text-gray-500 font-mono text-[9px]">{new Date(r.startDate).toLocaleDateString()} - {new Date(r.endDate).toLocaleDateString()}</p>
                         </div>
-                      ))}
-                    </div>
-                  );
-                })()}
+                        <div className="text-right">
+                          <p className="text-emerald-400 font-bold">₹{r.totalPrice}</p>
+                          <p className={`text-[8px] font-bold uppercase ${r.status === 'completed' ? 'text-emerald-500' : r.status === 'active' ? 'text-blue-500' : r.status === 'cancelled' ? 'text-red-500' : 'text-amber-500'}`}>
+                            {r.status}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-4 pt-4">

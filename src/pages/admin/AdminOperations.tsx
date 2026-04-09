@@ -22,6 +22,7 @@ export default function AdminOperations() {
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as OperationTab;
   const [activeTab, setActiveTab] = useState<OperationTab>(tabParam || 'orders');
+  const [systemTime] = useState(new Date().toLocaleTimeString());
 
   useEffect(() => {
     if (tabParam && tabs.find(t => t.id === tabParam)) {
@@ -96,7 +97,7 @@ export default function AdminOperations() {
             <RefreshCw className="h-3 w-3 animate-spin-slow" />
             <span>Auto-Sync Enabled</span>
           </span>
-          <span>Last Update: {new Date().toLocaleTimeString()}</span>
+          <span>Last Update: {systemTime}</span>
         </div>
       </div>
     </div>

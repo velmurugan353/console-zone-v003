@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 
-const API_URL = import.meta.env.PROD && !import.meta.env.VITE_API_URL_FORCE 
+const ENV = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env : ({} as any);
+const API_URL = ENV.PROD && !ENV.VITE_API_URL_FORCE 
   ? '' 
-  : (import.meta.env.VITE_API_URL || '');
+  : (ENV.VITE_API_URL || '');
 
 export interface AdminPriorityItem {
   id: string;
@@ -177,6 +178,16 @@ export const buildAdminOverview = (data: {
       status: k.status,
       message: `KYC for ${k.fullName} is ${k.status}`,
       severity: k.status === 'MANUAL_REVIEW' ? 'medium' as const : 'low' as const
+    })),
+    ...notifications.map(n => ({
+      id: n.id || n._id,
+      type: 'SYSTEM' as const,
+      title: n.title,
+      subtitle: n.message,
+      timestamp: n.timestamp ? new Date(n.timestamp) : new Date(),
+      status: n.read ? 'read' : 'unread',
+      message: n.message,
+      severity: (n.priority as any) || 'low'
     }))
   ].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
    .slice(0, 8);
@@ -202,6 +213,7 @@ export const useAdminOverview = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [overview, setOverview] = useState<AdminOverview | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -235,6 +247,7 @@ export const useAdminOverview = () => {
         });
 
         setOverview(data);
+        setLastUpdated(new Date());
         setLoading(false);
       } catch (e) {
         console.error("Dashboard data fetch failed:", e);
@@ -249,7 +262,7 @@ export const useAdminOverview = () => {
   return {
     loading,
     error,
-    lastUpdated: new Date(),
+    lastUpdated,
     metrics: overview?.metrics || {
       grossRevenue: 0,
       ordersInFlight: 0,

@@ -16,7 +16,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   login: (email: string, password?: string, role?: 'user' | 'admin') => Promise<void>;
-  register: (email: string, password?: string, name?: string) => Promise<void>;
+  register: (email: string, password?: string, name?: string, phone?: string) => Promise<void>;
   loginWithGoogle: (credential: string) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -37,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     const token = localStorage.getItem('consolezone_token');
+    console.log('[AUTH] Checking session, token exists:', !!token);
     if (!token) {
       setLoading(false);
       setUser(null);
@@ -49,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       if (response.ok) {
         const data = await response.json().catch(() => ({}));
+        console.log('[AUTH] Session valid:', data.username);
         setUser({
           id: data.id || data._id,
           name: data.username,
@@ -59,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           avatar: data.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100'
         });
       } else {
+        console.warn('[AUTH] Session invalid, status:', response.status);
         // If the server returns 401 or 403, the token is likely invalid or expired
         if (response.status === 401 || response.status === 403) {
           localStorage.removeItem('consolezone_token');
@@ -66,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
       }
     } catch (e) {
-      console.error("Auth check failed:", e);
+      console.error("[AUTH] Matrix uplink failure:", e);
       // Don't remove token on network error, only on auth error
       setUser(null);
     } finally {
@@ -100,12 +103,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const register = async (email: string, password?: string, name?: string) => {
-    console.log('Attempting register with:', { email, username: name });
+  const register = async (email: string, password?: string, name?: string, phone?: string) => {
+    console.log('Attempting register with:', { email, username: name, phone });
     const response = await fetch(`${API_URL}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, username: name || email.split('@')[0] })
+      body: JSON.stringify({ email, password, username: name || email.split('@')[0], phone })
     });
 
     console.log('Register response status:', response.status);

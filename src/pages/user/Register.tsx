@@ -19,7 +19,7 @@ export default function Register() {
     setError('');
     setLoading(true);
     try {
-      await register(email, password, name);
+      await register(email, password, name, phone);
       await login(email, password);
       navigate('/');
     } catch (err: any) {

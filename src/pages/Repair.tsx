@@ -29,6 +29,8 @@ type RepairFormValues = z.infer<typeof repairSchema>;
 
 export default function Repair() {
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { register, handleSubmit, formState: { errors }, watch } = useForm<RepairFormValues>({
     resolver: zodResolver(repairSchema)
   });
@@ -36,10 +38,32 @@ export default function Repair() {
   const selectedIssue = watch('issueType');
   const serviceDetails = REPAIR_SERVICES.find(s => s.id === selectedIssue);
 
-  const onSubmit = (data: RepairFormValues) => {
-    console.log(data);
-    // Simulate API call
-    setTimeout(() => setSubmitted(true), 1000);
+  const onSubmit = async (data: RepairFormValues) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('consolezone_token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/repairs`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to submit repair request');
+      }
+
+      setSubmitted(true);
+    } catch (err: any) {
+      console.error("Repair Submit Error:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -168,11 +192,14 @@ export default function Repair() {
               </div>
             </div>
 
+            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
             <button 
               type="submit"
-              className="w-full py-4 bg-gaming-accent text-black font-bold rounded-xl hover:bg-gaming-accent/90 transition-colors"
+              disabled={loading}
+              className="w-full py-4 bg-gaming-accent text-black font-bold rounded-xl hover:bg-gaming-accent/90 transition-colors disabled:opacity-50"
             >
-              Book Repair
+              {loading ? 'Processing...' : 'Book Repair'}
             </button>
           </form>
         </div>

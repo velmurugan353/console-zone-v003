@@ -41,9 +41,10 @@ export const DEFAULT_TEMPLATES: NotificationTemplate[] = [
 type NotificationCallback = (notifications: AppNotification[]) => void;
 const subscribers = new Map<string, Set<NotificationCallback>>();
 
-const API_URL = import.meta.env.PROD && !import.meta.env.VITE_API_URL_FORCE 
+const ENV = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env : ({} as any);
+const API_URL = ENV.PROD && !ENV.VITE_API_URL_FORCE 
   ? '' 
-  : (import.meta.env.VITE_API_URL || '');
+  : (ENV.VITE_API_URL || '');
 
 export const notificationService = {
   sendNotification: async (type: string, email: string, data: any) => {

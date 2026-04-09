@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Upload, DollarSign, ArrowRight } from 'lucide-react';
+import { Upload, DollarSign, ArrowRight, CheckCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { EditableText } from '../components/Editable';
 
 interface SellFormData {
@@ -11,11 +13,58 @@ interface SellFormData {
 }
 
 export default function Sell() {
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { register, handleSubmit, formState: { errors } } = useForm<SellFormData>();
 
-  const onSubmit = (data: SellFormData) => {
-    console.log('Sell request submitted:', data);
-    alert('Thank you! Our team will review your submission and contact you within 24 hours with an offer.');
+  const onSubmit = async (data: SellFormData) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('consolezone_token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/sell-requests`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to submit sell request');
+      }
+
+      setSubmitted(true);
+    } catch (err: any) {
+      console.error("Sell Submit Error:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (submitted) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-24 text-center">
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="bg-white/[0.02] backdrop-blur-xl border border-white/10 p-12 rounded-[2rem] shadow-2xl"
+        >
+          <div className="w-20 h-20 bg-[#B000FF]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="h-10 w-10 text-[#B000FF]" />
+          </div>
+          <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-4">Request Logged!</h2>
+          <p className="text-gray-400 font-mono text-xs uppercase tracking-widest mb-8 leading-relaxed">
+            Our procurement team will evaluate your hardware and contact you within 24 standard cycles with an offer.
+          </p>
+          <a href="/dashboard" className="inline-block py-4 px-8 bg-white text-black font-black uppercase tracking-widest text-xs rounded-xl hover:bg-gray-200 transition-all">Go to Dashboard</a>
+        </motion.div>
+      </div>
+    );
   }
 
   return (
@@ -114,13 +163,15 @@ export default function Sell() {
             </div>
           </div>
 
-          <div className="pt-4">
+          <div className="pt-4 space-y-4">
+            {error && <p className="text-red-500 text-[10px] font-mono uppercase tracking-widest text-center">{error}</p>}
             <button
               type="submit"
-              className="w-full py-5 bg-[#B000FF] text-black font-black text-sm uppercase tracking-widest rounded-xl hover:shadow-[0_0_30px_rgba(176,0,255,0.4)] transition-all flex items-center justify-center gap-2 group/btn"
+              disabled={loading}
+              className="w-full py-5 bg-[#B000FF] text-black font-black text-sm uppercase tracking-widest rounded-xl hover:shadow-[0_0_30px_rgba(176,0,255,0.4)] transition-all flex items-center justify-center gap-2 group/btn disabled:opacity-50"
             >
-              Submit Listing
-              <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+              {loading ? 'Submitting...' : 'Submit Listing'}
+              {!loading && <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />}
             </button>
           </div>
         </form>

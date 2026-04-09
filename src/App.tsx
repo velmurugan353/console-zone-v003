@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useState, lazy, Suspense } from 'react';
+import { useState, lazy, Suspense, useCallback, useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { CustomizerProvider } from './context/CustomizerContext';
@@ -69,6 +69,18 @@ const PageLoader = () => (
 function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
+  useEffect(() => {
+    console.log('[APP] Matrix re-initialized.');
+  });
+
+  const handleAuthRequired = useCallback(() => {
+    setIsAuthOpen(true);
+  }, []);
+
+  const handleCloseAuth = useCallback(() => {
+    setIsAuthOpen(false);
+  }, []);
+
   return (
     <AuthProvider>
       <CustomizerProvider>
@@ -77,24 +89,24 @@ function App() {
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 {/* Public Routes */}
-                <Route path="/" element={<MainLayout onAuthClick={() => setIsAuthOpen(true)}><Home /></MainLayout>} />
-                <Route path="/shop" element={<MainLayout onAuthClick={() => setIsAuthOpen(true)}><Shop /></MainLayout>} />
-                <Route path="/product/:id" element={<MainLayout onAuthClick={() => setIsAuthOpen(true)}><ProductDetails /></MainLayout>} />
-                <Route path="/rentals" element={<MainLayout onAuthClick={() => setIsAuthOpen(true)}><Rentals /></MainLayout>} />
-                <Route path="/sell" element={<MainLayout onAuthClick={() => setIsAuthOpen(true)}><Sell /></MainLayout>} />
-                <Route path="/repair" element={<MainLayout onAuthClick={() => setIsAuthOpen(true)}><Repair /></MainLayout>} />
-                <Route path="/cart" element={<MainLayout onAuthClick={() => setIsAuthOpen(true)}><Cart /></MainLayout>} />
+                <Route path="/" element={<MainLayout onAuthClick={handleAuthRequired}><Home /></MainLayout>} />
+                <Route path="/shop" element={<MainLayout onAuthClick={handleAuthRequired}><Shop /></MainLayout>} />
+                <Route path="/product/:id" element={<MainLayout onAuthClick={handleAuthRequired}><ProductDetails /></MainLayout>} />
+                <Route path="/rentals" element={<MainLayout onAuthClick={handleAuthRequired}><Rentals /></MainLayout>} />
+                <Route path="/sell" element={<MainLayout onAuthClick={handleAuthRequired}><Sell /></MainLayout>} />
+                <Route path="/repair" element={<MainLayout onAuthClick={handleAuthRequired}><Repair /></MainLayout>} />
+                <Route path="/cart" element={<MainLayout onAuthClick={handleAuthRequired}><Cart /></MainLayout>} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/rentals/:slug/book" element={<MainLayout onAuthClick={() => setIsAuthOpen(true)}><RentalBookingPage /></MainLayout>} />
-                <Route path="/rentals/:slug/book/confirm" element={<MainLayout onAuthClick={() => setIsAuthOpen(true)}><BookingConfirmationPage /></MainLayout>} />
-                <Route path="/book" element={<MainLayout onAuthClick={() => setIsAuthOpen(true)}><BookPage /></MainLayout>} />
-                <Route path="/support" element={<MainLayout onAuthClick={() => setIsAuthOpen(true)}><Support /></MainLayout>} />
+                <Route path="/rentals/:slug/book" element={<MainLayout onAuthClick={handleAuthRequired}><RentalBookingPage /></MainLayout>} />
+                <Route path="/rentals/:slug/book/confirm" element={<MainLayout onAuthClick={handleAuthRequired}><BookingConfirmationPage /></MainLayout>} />
+                <Route path="/book" element={<MainLayout onAuthClick={handleAuthRequired}><BookPage /></MainLayout>} />
+                <Route path="/support" element={<MainLayout onAuthClick={handleAuthRequired}><Support /></MainLayout>} />
                 <Route path="/coming-soon" element={<ComingSoon />} />
 
                 {/* Protected User Routes */}
-                <Route path="/dashboard" element={<RequireAuth onLoginRequired={() => setIsAuthOpen(true)}><UserLayout /></RequireAuth>}>
+                <Route path="/dashboard" element={<RequireAuth onLoginRequired={handleAuthRequired}><UserLayout /></RequireAuth>}>
                   <Route index element={<UserDashboard />} />
                   <Route path="orders" element={<MyOrders />} />
                   <Route path="rentals" element={<MyRentals />} />
@@ -106,7 +118,7 @@ function App() {
                 </Route>
 
                 {/* Protected Admin Routes */}
-                <Route path="/admin" element={<RequireAuth onLoginRequired={() => setIsAuthOpen(true)}><AdminLayout /></RequireAuth>}>
+                <Route path="/admin" element={<RequireAuth onLoginRequired={handleAuthRequired}><AdminLayout /></RequireAuth>}>
                   <Route index element={<AdminDashboard />} />
                   <Route path="products" element={<AdminProducts />} />
                   <Route path="operations" element={<AdminOperations />} />
@@ -130,7 +142,7 @@ function App() {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
-            <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+            <AuthModal isOpen={isAuthOpen} onClose={handleCloseAuth} />
           </Router>
         </CartProvider>
       </CustomizerProvider>

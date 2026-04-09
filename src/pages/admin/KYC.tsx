@@ -16,7 +16,7 @@ export default function AdminKYC() {
     const [documents, setDocuments] = useState<(KYCData & { id: string, isProcessing?: boolean, aiAssessment?: string, isAssessing?: boolean })[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'MANUAL_REVIEW' | 'REVERIFICATION_REQUESTED'>('ALL');
-    const [searchQuery, setSearchSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [adminNotes, setAdminNotes] = useState<Record<string, string>>({});
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -193,7 +193,7 @@ export default function AdminKYC() {
                         type="text"
                         placeholder="Search Identity Vector (Name or UUID)..."
                         value={searchQuery}
-                        onChange={(e) => setSearchSearchQuery(e.target.value)}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm text-white focus:border-[#B000FF] transition-all outline-none shadow-xl font-medium"
                     />
                 </div>

@@ -90,9 +90,10 @@ export const DEFAULT_RULES: AutomationRules = {
   latePenaltyPerDay: 500
 };
 
-const API_URL = import.meta.env.PROD && !import.meta.env.VITE_API_URL_FORCE 
+const ENV = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env : ({} as any);
+const API_URL = ENV.PROD && !ENV.VITE_API_URL_FORCE 
   ? '' 
-  : (import.meta.env.VITE_API_URL || '');
+  : (ENV.VITE_API_URL || '');
 
 class RentalAutomationService {
   private rules: AutomationRules = { ...DEFAULT_RULES };
@@ -119,6 +120,7 @@ class RentalAutomationService {
       return rentals.map((r: any) => ({
         ...r,
         id: r._id || r.id,
+        customerId: r.userId?._id || r.userId,
         customer: r.user || 'Anonymous',
         lateFee: r.lateFees || 0,
         repairCost: r.repairCost || 0,
@@ -204,27 +206,63 @@ class RentalAutomationService {
       });
       if (!response.ok) return [];
       const users = await response.json();
-      return users.map((u: any) => ({
-        id: u.id || u._id,
-        name: u.username,
-        email: u.email,
-        kycStatus: u.kyc_status,
-        riskScore: 'low',
-        totalRentals: 0,
-        activeRentals: 0,
-        completedRentals: 0,
-        cancelledRentals: 0,
-        totalSpent: 0,
-        totalLateFees: 0,
-        totalRepairCosts: 0,
-        depositBalance: 0,
-        notes: '',
-        createdAt: u.createdAt
-      }));
+      const history = await this.getRentalHistory();
+
+      return users.map((u: any) => {
+        const userId = u.id || u._id;
+        const userRentals = history.filter(r => r.customerId === userId);
+        const totalSpent = userRentals.reduce((sum, r) => sum + r.totalPrice, 0);
+        
+        return {
+          id: u.id || u._id,
+          name: u.username,
+          email: u.email,
+          phone: u.phone,
+          avatar: u.avatar,
+          kycStatus: u.kyc_status,
+          riskScore: 'low',
+          totalRentals: userRentals.length,
+          activeRentals: userRentals.filter(r => r.status === 'active').length,
+          completedRentals: userRentals.filter(r => r.status === 'completed').length,
+          cancelledRentals: userRentals.filter(r => r.status === 'cancelled').length,
+          totalSpent,
+          totalLateFees: userRentals.reduce((sum, r) => sum + (r.lateFee || 0), 0),
+          totalRepairCosts: userRentals.reduce((sum, r) => sum + (r.repairCost || 0), 0),
+          depositBalance: 0,
+          notes: u.notes || '',
+          createdAt: u.createdAt
+        };
+      });
     } catch (error) {
       console.error("Error fetching customers:", error);
       return [];
     }
+  }
+
+  async getCustomerById(id: string): Promise<CustomerProfile | null> {
+    const customers = await this.getCustomers();
+    return customers.find(c => c.id === id) || null;
+  }
+
+  async addCustomerNote(id: string, note: string): Promise<void> {
+    try {
+      const token = localStorage.getItem('consolezone_token');
+      await fetch(`${API_URL}/api/users/${id}`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ notes: note })
+      });
+    } catch (error) {
+      console.error("Error adding customer note:", error);
+    }
+  }
+
+  async getRentalsByCustomer(id: string): Promise<RentalHistoryEntry[]> {
+    const history = await this.getRentalHistory();
+    return history.filter(r => r.customerId === id);
   }
 
   // =================== RENTAL WORKFLOW AUTOMATION ===================
